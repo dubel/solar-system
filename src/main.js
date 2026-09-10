@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js'
+import { bindExplorer } from './explorer.js'
 import { FlyCamera } from './flyCamera.js'
 import { bindHud } from './hud.js'
 import { createSky } from './sky.js'
@@ -26,6 +27,14 @@ let simTimeDays = 0
 const hud = bindHud({
   onJumpToDate(days) {
     simTimeDays = days
+  },
+})
+
+let meshById = new Map()
+const explorer = bindExplorer({
+  onSelect(id) {
+    const mesh = meshById.get(id)
+    if (mesh) setFocus(mesh)
   },
 })
 
@@ -104,6 +113,7 @@ function setFocus(mesh) {
     duration: 1.15,
   }
   hud.setFocus(mesh.userData.name)
+  explorer.setActive(mesh.userData.id)
 }
 
 function updateFocus(delta) {
@@ -111,6 +121,7 @@ function updateFocus(delta) {
   if (fly.isMoving()) {
     focus = null
     hud.setFocus(null)
+    explorer.setActive(null)
     fly.syncFromCamera()
     return
   }
@@ -164,6 +175,7 @@ async function start() {
   const textures = await loadTextures()
   scene.add(createSky(textures.milkyway))
   system = createSolarSystem(scene, textures)
+  meshById = new Map(system.pickables.map((mesh) => [mesh.userData.id, mesh]))
   updateSolarSystem(system.bodies, simTimeDays)
   hud.setDate(simTimeDays)
   hud.setDistance(fly.distance)

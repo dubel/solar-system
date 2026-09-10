@@ -52,6 +52,32 @@
       </p>
       <p class="credit">Tekstury: Solar System Scope (CC BY 4.0), na podstawie danych NASA.</p>
     </details>
+    <div class="explorer" id="explorer">
+      <button
+        class="explorer-toggle"
+        id="explorer-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="explorer-panel"
+        aria-label="Przeglądaj obiekty"
+        title="Przeglądaj obiekty"
+      >
+        <svg class="explorer-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="M15.5 15.5 L21 21" />
+        </svg>
+      </button>
+      <div class="explorer-panel" id="explorer-panel" role="dialog" aria-label="Lista obiektów" hidden>
+        <div class="explorer-head">
+          <span class="hud-title">Obiekty</span>
+          <button class="explorer-close" id="explorer-close" type="button" aria-label="Zamknij listę">
+            ×
+          </button>
+        </div>
+        <p class="subtitle">Kliknij obiekt, aby wyśrodkować na nim widok</p>
+        <ul class="object-list" id="object-list"></ul>
+      </div>
+    </div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

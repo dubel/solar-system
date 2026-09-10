@@ -221,6 +221,206 @@ canvas {
   display: none;
 }
 
+.explorer {
+  position: absolute;
+  z-index: 4;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: max(12px, env(safe-area-inset-left));
+}
+
+.explorer-toggle {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid rgba(255, 236, 190, 0.22);
+  border-radius: 50%;
+  background: rgba(8, 12, 24, 0.72);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  color: #f0c36a;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.explorer-toggle:hover {
+  transform: scale(1.06);
+  border-color: rgba(255, 236, 190, 0.5);
+  color: #ffd27a;
+}
+
+.explorer-toggle:active {
+  transform: scale(0.95);
+}
+
+.explorer-icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.explorer.open .explorer-toggle {
+  display: none;
+}
+
+.explorer-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(320px, calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  max-height: min(60vh, 460px);
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 236, 190, 0.18);
+  border-radius: 14px;
+  background: rgba(8, 12, 24, 0.72);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.explorer-panel[hidden] {
+  display: none;
+}
+
+.explorer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.explorer-head .hud-title {
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.explorer-close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #c9d0df;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.explorer-close:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.explorer-panel .subtitle {
+  margin: 8px 0 12px;
+  font-size: 0.8rem;
+  color: #c9d0df;
+}
+
+.object-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 2px;
+  overflow-y: auto;
+  list-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.object-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.object-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.object-item.active {
+  background: rgba(240, 195, 106, 0.14);
+  border-color: rgba(240, 195, 106, 0.5);
+}
+
+.object-thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  overflow: hidden;
+  border-radius: 50%;
+  background-color: #05070d;
+  background-image: var(--tex);
+  background-repeat: repeat-x;
+  background-position: 0 center;
+  background-size: 76px 100%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  animation: object-spin 8s linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.object-thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 46%),
+    radial-gradient(circle at 72% 78%, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0) 62%);
+}
+
+@keyframes object-spin {
+  to {
+    background-position: -76px center;
+  }
+}
+
+.object-info {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.object-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.object-kind {
+  overflow: hidden;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #9aa3b6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .object-thumb {
+    animation: none;
+  }
+}
+
 @media (pointer: coarse), (max-width: 720px) {
   .hint-desktop {
     display: none;
