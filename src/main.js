@@ -166,7 +166,6 @@ function animate() {
     fly.update(delta)
   }
   hud.setDate(simTimeDays)
-  hud.setDistance(fly.distance)
   renderer.render(scene, camera)
   labelRenderer.render(scene, camera)
 }
@@ -178,7 +177,6 @@ async function start() {
   meshById = new Map(system.pickables.map((mesh) => [mesh.userData.id, mesh]))
   updateSolarSystem(system.bodies, simTimeDays)
   hud.setDate(simTimeDays)
-  hud.setDistance(fly.distance)
   hud.setFocus(null)
   loading.classList.add('hidden')
   window.addEventListener('resize', onResize)

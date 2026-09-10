@@ -48,10 +48,6 @@ export class FlyCamera {
     this.#bind()
   }
 
-  get distance() {
-    return this.spherical.radius
-  }
-
   syncFromCamera() {
     this.offset.copy(this.camera.position).sub(this.target)
     if (this.offset.lengthSq() < 0.0001) {

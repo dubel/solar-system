@@ -33,7 +33,6 @@ export function bindHud({ onJumpToDate } = {}) {
   const dateValue = document.querySelector('#sim-date')
   const dateInput = document.querySelector('#sim-date-input')
   const dateOverlay = document.querySelector('.date-overlay')
-  const distanceValue = document.querySelector('#view-distance')
   const focusValue = document.querySelector('#focus-name')
   let pickerOpen = false
 
@@ -94,9 +93,6 @@ export function bindHud({ onJumpToDate } = {}) {
       if (!pickerOpen && document.activeElement !== dateInput) {
         dateInput.value = clampIsoDate(simDaysToIso(simTimeDays))
       }
-    },
-    setDistance(distance) {
-      distanceValue.textContent = distance.toFixed(0)
     },
     setFocus(name) {
       focusValue.textContent = name ?? 'swobodny lot'
