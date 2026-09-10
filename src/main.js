@@ -188,8 +188,12 @@ function onCanvasClick(event) {
 function animate() {
   requestAnimationFrame(animate)
   const delta = Math.min(clock.getDelta(), 0.05)
-  simTimeDays += delta * hud.getTimeScale()
+  const timeScale = hud.getTimeScale()
+  simTimeDays += delta * timeScale
   updateSolarSystem(system.bodies, simTimeDays)
+  // ISS wygląda źle przy szybkim upływie czasu — pokazujemy ją tylko na pauzie i 0.001 doby/s.
+  const issMesh = meshById.get('iss')
+  if (issMesh) issMesh.visible = timeScale <= 0.001
   if (focus) {
     updateFocus(delta)
   } else {

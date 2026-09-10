@@ -110,32 +110,6 @@ function createClouds(radius, texture) {
   return clouds
 }
 
-function createAtmosphere(radius, colorHex) {
-  const material = new THREE.ShaderMaterial({
-    uniforms: { uColor: { value: new THREE.Color(colorHex) } },
-    vertexShader: `
-      varying vec3 vNormalV;
-      void main() {
-        vNormalV = normalize(normalMatrix * normal);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-      fragmentShader: `
-      varying vec3 vNormalV;
-      uniform vec3 uColor;
-      void main() {
-        float rim = pow(0.62 - dot(vNormalV, vec3(0.0, 0.0, 1.0)), 4.0);
-        gl_FragColor = vec4(uColor, 1.0) * clamp(rim, 0.0, 1.0) * 0.9;
-      }
-    `,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-      depthWrite: false,
-    })
-    return new THREE.Mesh(new THREE.SphereGeometry(radius * 1.14, 48, 32), material)
-}
-
 // W modelu NASA "ISS (B)" jest 7 zbłąkanych, płaskich siatek-dysków
 // (bendedtru*/pCylinder*) odczepionych od stacji (~40 j. w osi Y od reszty).
 // To one dają "artefakt / dysk" obok stacji — usuwamy je przy wczytaniu.
@@ -254,9 +228,6 @@ export function createSolarSystem(scene, textures, models = {}) {
     if (planet.clouds && textures.earthClouds) {
       clouds = createClouds(radius, textures.earthClouds)
       tilt.add(clouds)
-    }
-    if (planet.atmosphere) {
-      tilt.add(createAtmosphere(radius, planet.atmosphere))
     }
 
     if (planet.rings) {

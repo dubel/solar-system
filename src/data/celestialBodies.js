@@ -90,7 +90,6 @@ export const PLANETS = [
     color: 0x2b6cb0,
     clouds: true,
     nightMap: true,
-    atmosphere: 0x6bb4ff,
     moons: [MOON],
   },
   {
