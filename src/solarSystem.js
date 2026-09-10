@@ -19,10 +19,10 @@ function orbitalPosition(radius, inclinationDeg, periodDays, meanLongitudeDeg, s
   )
 }
 
-// SphereGeometry: środek tekstury (u=0.5, znana strona Księżyca) leży na lokalnym -X.
-// Ustawiamy yaw tak, by -X patrzyło na rodzica (Ziemię).
+// SphereGeometry: u=0 jest na lokalnym −X (szew), u=0.5 (środek mapy = morza, strona widoczna
+// z Ziemi) na lokalnym +X. Yaw tak, by +X patrzyło na rodzica (Ziemię).
 function faceParentYaw(position, phaseDeg = 0) {
-  return Math.atan2(-position.z, position.x) + THREE.MathUtils.degToRad(phaseDeg)
+  return Math.atan2(position.z, -position.x) + THREE.MathUtils.degToRad(phaseDeg)
 }
 
 function createOrbitLine(radius, inclinationDeg) {
