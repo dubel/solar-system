@@ -22,7 +22,12 @@ const TEXTURE_FILES = {
 }
 
 const loading = document.querySelector('#loading')
-const hud = bindHud()
+let simTimeDays = 0
+const hud = bindHud({
+  onJumpToDate(days) {
+    simTimeDays = days
+  },
+})
 
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2500)
@@ -50,7 +55,6 @@ const pointer = new THREE.Vector2()
 const focusOffset = new THREE.Vector3()
 const lookTarget = new THREE.Vector3()
 
-let simTimeDays = 0
 let system = { bodies: [], pickables: [] }
 let focus = null
 
