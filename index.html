@@ -67,7 +67,8 @@
         1 palec — obrót · 2 palce — przesunięcie · pinch — przybliżenie · tap w planetę
       </p>
       <p class="credit">
-        Tekstury: Solar System Scope (CC BY 4.0), na podstawie danych NASA. Model ISS: NASA 3D
+        Tekstury: Solar System Scope (CC BY 4.0), na podstawie danych NASA. Gwiazdy: HYG
+        (Hipparcos/Yale/Gliese, CC BY-SA 4.0). Linie gwiazdozbiorów: Stellarium. Model ISS: NASA 3D
         Resources (domena publiczna).
       </p>
     </details>
@@ -100,6 +101,21 @@
           <circle cx="13.4" cy="6.4" r="0.7" />
           <rect x="3.2" y="10" width="12.2" height="8.6" rx="1.2" />
           <path d="M15.4 13.1 h3.6 a2.1 2.1 0 0 1 0 3.8 h-3.6" />
+        </svg>
+      </button>
+      <button
+        class="constellation-toggle"
+        id="constellation-toggle"
+        type="button"
+        hidden
+        aria-pressed="false"
+        aria-label="Pokaż linie gwiazdozbiorów"
+        title="Pokaż linie gwiazdozbiorów"
+      >
+        <svg class="constellation-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 3.1 L14.5 9.2 L21.1 9.7 L16.2 13.9 L17.8 20.4 L12 16.9 L6.2 20.4 L7.8 13.9 L2.9 9.7 L9.5 9.2 Z"
+          />
         </svg>
       </button>
       <div class="explorer-panel" id="explorer-panel" role="dialog" aria-label="Lista obiektów" hidden>

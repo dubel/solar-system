@@ -6,7 +6,7 @@ import { bindExplorer } from './explorer.js'
 import { bindFacts } from './facts.js'
 import { FlyCamera } from './flyCamera.js'
 import { bindHud } from './hud.js'
-import { createSky } from './sky.js'
+import { createSky, loadStarCatalog, resizeSky, setConstellationLinesVisible } from './sky.js'
 import { createSolarSystem, updateSolarSystem } from './solarSystem.js'
 import './style.css'
 
@@ -51,10 +51,16 @@ const explorer = bindExplorer({
   },
 })
 const facts = bindFacts({ onClose: clearFocus })
+const constellationToggle = document.querySelector('#constellation-toggle')
 document.querySelector('#view-toggle').addEventListener('click', cycleCameraView)
+constellationToggle.addEventListener('click', () => {
+  const lines = skyRoot?.getObjectByName('constellations')
+  if (!lines) return
+  syncConstellationToggle(setConstellationLinesVisible(skyRoot, !lines.visible))
+})
 
 const scene = new THREE.Scene()
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2500)
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 4000)
 camera.position.set(0, 28, 78)
 camera.lookAt(0, 0, 0)
 
@@ -81,6 +87,7 @@ const lookTarget = new THREE.Vector3()
 
 let system = { bodies: [], pickables: [] }
 let focus = null
+let skyRoot = null
 
 // Toggle widoków kamery: start (domyślny) ↔ rzut z góry. Na starcie jesteśmy już
 // w widoku domyślnym, więc pierwsze kliknięcie idzie od razu na rzut z góry.
@@ -233,12 +240,21 @@ function cycleCameraView() {
   startView(showingOverview ? overviewView : defaultView)
 }
 
+function syncConstellationToggle(visible) {
+  constellationToggle.hidden = false
+  constellationToggle.setAttribute('aria-pressed', String(visible))
+  const label = visible ? 'Ukryj linie gwiazdozbiorów' : 'Pokaż linie gwiazdozbiorów'
+  constellationToggle.setAttribute('aria-label', label)
+  constellationToggle.title = label
+}
+
 function onResize() {
   const { width, height } = viewportSize()
   camera.aspect = width / height
   camera.updateProjectionMatrix()
   renderer.setSize(width, height)
   labelRenderer.setSize(width, height)
+  resizeSky(skyRoot, renderer.domElement.width, renderer.domElement.height)
 }
 
 function onCanvasClick(event) {
@@ -275,8 +291,17 @@ function animate() {
 }
 
 async function start() {
-  const [textures, issModel] = await Promise.all([loadTextures(), loadISSModel()])
-  scene.add(createSky(textures.milkyway))
+  const [textures, issModel, starCatalog] = await Promise.all([
+    loadTextures(),
+    loadISSModel(),
+    loadStarCatalog(),
+  ])
+  skyRoot = createSky(textures.milkyway, starCatalog)
+  scene.add(skyRoot)
+  resizeSky(skyRoot, renderer.domElement.width, renderer.domElement.height)
+  if (skyRoot.getObjectByName('constellations')) {
+    syncConstellationToggle(false)
+  }
   system = createSolarSystem(scene, textures, { iss: issModel })
   meshById = new Map(system.pickables.map((mesh) => [mesh.userData.id, mesh]))
   explorer.setAvailable('iss', meshById.has('iss'))
