@@ -62,7 +62,7 @@ function loadTextures() {
       ([key, file]) =>
         new Promise((resolve) => {
           loader.load(
-            `/textures/${file}`,
+            `${import.meta.env.BASE_URL}textures/${file}`,
             (texture) => {
               texture.colorSpace = THREE.SRGBColorSpace
               texture.anisotropy = 8
