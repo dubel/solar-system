@@ -1,0 +1,10 @@
+Star catalog: HYG v4.4 (Hipparcos + Yale Bright Star + Gliese)
+https://www.astronexus.com/projects/hyg
+License: CC BY-SA 4.0
+
+Constellation stick figures: Stellarium "modern" sky culture
+https://github.com/Stellarium/stellarium
+(HIP pairs from constellationship.fab)
+
+Positions converted from ICRS RA (hours) / Dec (degrees) to the scene's
+J2000 ecliptic (XZ = ecliptic plane, +Y = ecliptic north).

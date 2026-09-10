@@ -284,7 +284,8 @@ canvas {
 }
 
 .explorer-toggle,
-.view-toggle {
+.view-toggle,
+.constellation-toggle {
   display: grid;
   place-items: center;
   width: 46px;
@@ -301,19 +302,22 @@ canvas {
 }
 
 .explorer-toggle:hover,
-.view-toggle:hover {
+.view-toggle:hover,
+.constellation-toggle:hover {
   transform: scale(1.06);
   border-color: rgba(255, 236, 190, 0.5);
   color: #ffd27a;
 }
 
 .explorer-toggle:active,
-.view-toggle:active {
+.view-toggle:active,
+.constellation-toggle:active {
   transform: scale(0.95);
 }
 
 .explorer-icon,
-.view-icon {
+.view-icon,
+.constellation-icon {
   width: 22px;
   height: 22px;
   fill: none;
@@ -324,8 +328,19 @@ canvas {
 }
 
 .explorer.open .explorer-toggle,
-.explorer.open .view-toggle {
+.explorer.open .view-toggle,
+.explorer.open .constellation-toggle {
   display: none;
+}
+
+.constellation-toggle[aria-pressed='true'] {
+  border-color: rgba(255, 236, 190, 0.55);
+  color: #ffd27a;
+  background: rgba(240, 195, 106, 0.14);
+}
+
+.constellation-toggle[aria-pressed='true'] .constellation-icon {
+  fill: currentColor;
 }
 
 .explorer-panel {
