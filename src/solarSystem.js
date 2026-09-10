@@ -19,6 +19,12 @@ function orbitalPosition(radius, inclinationDeg, periodDays, meanLongitudeDeg, s
   )
 }
 
+// SphereGeometry: środek tekstury (u=0.5, znana strona Księżyca) leży na lokalnym -X.
+// Ustawiamy yaw tak, by -X patrzyło na rodzica (Ziemię).
+function faceParentYaw(position, phaseDeg = 0) {
+  return Math.atan2(-position.z, position.x) + THREE.MathUtils.degToRad(phaseDeg)
+}
+
 function createOrbitLine(radius, inclinationDeg) {
   const points = []
   const segments = 256
@@ -350,7 +356,9 @@ export function updateSolarSystem(bodies, simTimeDays) {
           simTimeDays,
         ),
       )
-      moon.spin.rotation.y = (simTimeDays / moon.data.rotationPeriodDays) * Math.PI * 2
+      moon.spin.rotation.y = moon.data.tidalLock
+        ? faceParentYaw(moon.anchor.position, moon.data.lockPhaseDeg)
+        : (simTimeDays / moon.data.rotationPeriodDays) * Math.PI * 2
     }
 
     for (const sat of body.satellites ?? []) {

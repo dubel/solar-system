@@ -31,7 +31,8 @@ export const MOON = {
   name: 'Księżyc',
   radiusKm: 1737.4,
   orbitalPeriodDays: 27.321661,
-  rotationPeriodDays: 27.321661,
+  rotationPeriodDays: 27.321661, // = okres obiegu — obrót synchroniczny (tidal lock)
+  tidalLock: true,
   obliquityDeg: 6.68,
   inclinationDeg: 5.145,
   meanLongitudeDeg: 125.08,
