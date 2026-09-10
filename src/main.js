@@ -36,7 +36,10 @@ let meshById = new Map()
 const explorer = bindExplorer({
   onSelect(id) {
     const mesh = meshById.get(id)
-    if (mesh) setFocus(mesh)
+    if (!mesh) return
+    setFocus(mesh)
+    // ISS okrąża Ziemię ~15×/s przy 1 dobie/s — zwalniamy, by dało się ją obserwować.
+    if (id === 'iss') hud.setTimeScale(0.001)
   },
 })
 

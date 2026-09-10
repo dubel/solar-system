@@ -45,7 +45,7 @@ export const ISS = {
   inclinationDeg: 51.64,
   meanLongitudeDeg: 0,
   visualOrbitRadius: 1.7,
-  targetSize: 0.55, // znormalizowany największy wymiar modelu w jednostkach sceny
+  targetSize: 0.6, // znormalizowany największy wymiar modelu w jednostkach sceny
   focusDistance: 2.8,
 }
 

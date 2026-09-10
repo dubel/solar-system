@@ -64,9 +64,37 @@ function planetMaterial(texture, color) {
   })
 }
 
+// W modelu NASA "ISS (B)" jest 7 zbłąkanych, płaskich siatek-dysków
+// (bendedtru*/pCylinder*) odczepionych od stacji (~40 j. w osi Y od reszty).
+// To one dają "artefakt / dysk" obok stacji — usuwamy je przy wczytaniu.
+const ISS_ARTIFACT_MESHES = new Set([
+  'bendedtru1',
+  'bendedtru2',
+  'bendedtru3',
+  'bendedtrus',
+  'pCylinder1',
+  'pCylinder2',
+  'pCylinder8',
+])
+
+function stripArtifactMeshes(model, names) {
+  const toRemove = []
+  model.traverse((object) => {
+    if (!object.isMesh) return
+    const base = object.name.replace(/_\d+$/, '')
+    if (names.has(object.name) || names.has(base)) toRemove.push(object)
+  })
+  for (const mesh of toRemove) {
+    mesh.removeFromParent()
+    mesh.geometry?.dispose()
+  }
+}
+
 // Normalizuje wczytany model glTF (centruje i skaluje do umownego rozmiaru sceny)
 // oraz opakowuje go w grupy: anchor (orbita) -> spin (obrót własny) -> model.
 function createSatellite(model, data) {
+  stripArtifactMeshes(model, ISS_ARTIFACT_MESHES)
+
   const box = new THREE.Box3().setFromObject(model)
   const size = box.getSize(new THREE.Vector3())
   const center = box.getCenter(new THREE.Vector3())

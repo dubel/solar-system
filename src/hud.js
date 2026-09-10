@@ -26,29 +26,72 @@ function isoToSimDays(iso) {
   return (Date.UTC(year, month - 1, day, 12) - EPOCH_MS) / MS_PER_DAY
 }
 
+// Nieliniowe „nastawy" tempa (doby / s). Indeks 0 = pauza; drobne kroki na starcie
+// pozwalają wygodnie obserwować szybkie obiekty (np. ISS), a końcówka — szybki przegląd.
+const TIME_SCALES = [0, 0.001, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 20, 40]
+const DEFAULT_INDEX = 7 // 1 dzień / s
+
+function indexFromScale(days) {
+  let best = 0
+  let bestDiff = Infinity
+  for (let i = 0; i < TIME_SCALES.length; i += 1) {
+    const diff = Math.abs(TIME_SCALES[i] - days)
+    if (diff < bestDiff) {
+      bestDiff = diff
+      best = i
+    }
+  }
+  return best
+}
+
 export function bindHud({ onJumpToDate } = {}) {
   const panel = document.querySelector('#hud-panel')
   const timeScale = document.querySelector('#time-scale')
   const timeValue = document.querySelector('#time-value')
+  const timeToggle = document.querySelector('#time-toggle')
+  const timeState = document.querySelector('#time-state')
   const dateValue = document.querySelector('#sim-date')
   const dateInput = document.querySelector('#sim-date-input')
   const dateOverlay = document.querySelector('.date-overlay')
   const focusValue = document.querySelector('#focus-name')
   let pickerOpen = false
+  let lastRunningIndex = DEFAULT_INDEX
 
   if (window.matchMedia('(max-width: 720px), (pointer: coarse)').matches) {
     panel.open = false
   }
 
+  const currentScale = () => TIME_SCALES[Number(timeScale.value)] ?? 0
+
   const formatScale = (daysPerSecond) => {
-    if (Number(daysPerSecond) === 0) return 'pauza'
-    if (daysPerSecond < 1) return `${daysPerSecond.toFixed(2)} dnia / s`
+    if (daysPerSecond === 0) return 'pauza'
+    const value = parseFloat(daysPerSecond.toFixed(3))
     if (daysPerSecond === 1) return '1 dzień / s'
-    return `${daysPerSecond} dni / s`
+    if (daysPerSecond < 1) return `${value} dnia / s`
+    return `${value} dni / s`
+  }
+
+  const updateToggle = () => {
+    const paused = currentScale() === 0
+    timeToggle.classList.toggle('is-paused', paused)
+    timeToggle.setAttribute('aria-pressed', String(paused))
+    timeState.textContent = paused ? 'Pauza' : 'Odtwarzanie'
   }
 
   const syncScaleLabel = () => {
-    timeValue.textContent = formatScale(Number(timeScale.value))
+    timeValue.textContent = formatScale(currentScale())
+    if (currentScale() > 0) lastRunningIndex = Number(timeScale.value)
+    updateToggle()
+  }
+
+  const togglePlay = () => {
+    if (currentScale() > 0) {
+      lastRunningIndex = Number(timeScale.value)
+      timeScale.value = '0'
+    } else {
+      timeScale.value = String(lastRunningIndex || DEFAULT_INDEX)
+    }
+    syncScaleLabel()
   }
 
   const jumpFromInput = () => {
@@ -69,6 +112,7 @@ export function bindHud({ onJumpToDate } = {}) {
   }
 
   timeScale.addEventListener('input', syncScaleLabel)
+  timeToggle.addEventListener('click', togglePlay)
   syncScaleLabel()
 
   dateInput.addEventListener('focus', () => {
@@ -85,7 +129,11 @@ export function bindHud({ onJumpToDate } = {}) {
 
   return {
     getTimeScale() {
-      return Number(timeScale.value)
+      return currentScale()
+    },
+    setTimeScale(days) {
+      timeScale.value = String(indexFromScale(days))
+      syncScaleLabel()
     },
     setDate(simTimeDays) {
       const date = new Date(EPOCH_MS + simTimeDays * MS_PER_DAY)

@@ -112,6 +112,58 @@ canvas {
   font-size: 0.86rem;
 }
 
+.time-control-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.time-toggle {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 236, 190, 0.28);
+  border-radius: 50%;
+  background: rgba(255, 236, 190, 0.08);
+  color: #f0c36a;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.time-toggle:hover {
+  border-color: rgba(255, 236, 190, 0.6);
+  color: #ffd27a;
+}
+
+.time-toggle:active {
+  transform: scale(0.94);
+}
+
+.time-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.time-toggle .icon-play {
+  display: none;
+}
+
+.time-toggle.is-paused .icon-pause {
+  display: none;
+}
+
+.time-toggle.is-paused .icon-play {
+  display: block;
+}
+
+#time-state {
+  font-size: 0.86rem;
+  color: #c9d0df;
+}
+
 .date-control {
   position: relative;
   min-height: 36px;
