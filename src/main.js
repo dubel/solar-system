@@ -14,6 +14,8 @@ const TEXTURE_FILES = {
   mercury: 'mercury.jpg',
   venus: 'venus.jpg',
   earth: 'earth.jpg',
+  earthClouds: 'earth_clouds.jpg',
+  earthNight: 'earth_night.jpg',
   mars: 'mars.jpg',
   jupiter: 'jupiter.jpg',
   saturn: 'saturn.jpg',

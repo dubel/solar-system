@@ -64,6 +64,78 @@ function planetMaterial(texture, color) {
   })
 }
 
+const EARTH_CLOUD_PERIOD = 0.9 // doby — trochę szybciej niż obrót Ziemi, by chmury dryfowały
+const sunDirection = new THREE.Vector3()
+
+// Światła miast: mapa nocna widoczna tylko po nieoświetlonej stronie.
+// Wstrzykujemy to w MeshStandardMaterial (zachowując oświetlenie i tonemapping sceny);
+// kierunek do Słońca podajemy uniformem, aktualizowanym co klatkę.
+function applyNightLights(material, nightTexture) {
+  material.emissiveMap = nightTexture
+  material.emissive = new THREE.Color(0xffffff)
+  material.emissiveIntensity = 1.5
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uSunDirection = { value: new THREE.Vector3(1, 0, 0) }
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vSurfaceNormalW;')
+      .replace(
+        '#include <beginnormal_vertex>',
+        '#include <beginnormal_vertex>\n  vSurfaceNormalW = mat3(modelMatrix) * objectNormal;',
+      )
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        '#include <common>\nvarying vec3 vSurfaceNormalW;\nuniform vec3 uSunDirection;',
+      )
+      .replace(
+        '#include <emissivemap_fragment>',
+        '#include <emissivemap_fragment>\n  float sunDot = dot(normalize(vSurfaceNormalW), normalize(uSunDirection));\n  totalEmissiveRadiance *= 1.0 - smoothstep(-0.08, 0.15, sunDot);',
+      )
+    material.userData.shader = shader
+  }
+  material.needsUpdate = true
+}
+
+function createClouds(radius, texture) {
+  const material = new THREE.MeshStandardMaterial({
+    map: texture,
+    alphaMap: texture,
+    transparent: true,
+    depthWrite: false,
+    roughness: 1,
+    metalness: 0,
+  })
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(radius * 1.012, 48, 32), material)
+  clouds.renderOrder = 1
+  return clouds
+}
+
+function createAtmosphere(radius, colorHex) {
+  const material = new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(colorHex) } },
+    vertexShader: `
+      varying vec3 vNormalV;
+      void main() {
+        vNormalV = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+      fragmentShader: `
+      varying vec3 vNormalV;
+      uniform vec3 uColor;
+      void main() {
+        float rim = pow(0.62 - dot(vNormalV, vec3(0.0, 0.0, 1.0)), 4.0);
+        gl_FragColor = vec4(uColor, 1.0) * clamp(rim, 0.0, 1.0) * 0.9;
+      }
+    `,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      depthWrite: false,
+    })
+    return new THREE.Mesh(new THREE.SphereGeometry(radius * 1.14, 48, 32), material)
+}
+
 // W modelu NASA "ISS (B)" jest 7 zbłąkanych, płaskich siatek-dysków
 // (bendedtru*/pCylinder*) odczepionych od stacji (~40 j. w osi Y od reszty).
 // To one dają "artefakt / dysk" obok stacji — usuwamy je przy wczytaniu.
@@ -173,6 +245,20 @@ export function createSolarSystem(scene, textures, models = {}) {
     tilt.add(mesh)
     pickables.push(mesh)
 
+    let clouds = null
+    let dayNightMaterial = null
+    if (planet.nightMap && textures.earthNight) {
+      applyNightLights(mesh.material, textures.earthNight)
+      dayNightMaterial = mesh.material
+    }
+    if (planet.clouds && textures.earthClouds) {
+      clouds = createClouds(radius, textures.earthClouds)
+      tilt.add(clouds)
+    }
+    if (planet.atmosphere) {
+      tilt.add(createAtmosphere(radius, planet.atmosphere))
+    }
+
     if (planet.rings) {
       const inner = radius * planet.rings.innerScale
       const outer = radius * planet.rings.outerScale
@@ -249,6 +335,8 @@ export function createSolarSystem(scene, textures, models = {}) {
       spin: mesh,
       moons,
       satellites,
+      clouds,
+      dayNightMaterial,
     })
   }
 
@@ -272,6 +360,14 @@ export function updateSolarSystem(bodies, simTimeDays) {
       ),
     )
     body.spin.rotation.y = (simTimeDays / body.data.rotationPeriodDays) * Math.PI * 2
+
+    if (body.clouds) {
+      body.clouds.rotation.y = (simTimeDays / EARTH_CLOUD_PERIOD) * Math.PI * 2
+    }
+    if (body.dayNightMaterial?.userData?.shader) {
+      sunDirection.copy(body.anchor.position).negate().normalize()
+      body.dayNightMaterial.userData.shader.uniforms.uSunDirection.value.copy(sunDirection)
+    }
 
     for (const moon of body.moons) {
       moon.anchor.position.copy(

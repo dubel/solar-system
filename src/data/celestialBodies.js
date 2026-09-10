@@ -88,6 +88,9 @@ export const PLANETS = [
     meanLongitudeDeg: 100.464,
     texture: 'earth.jpg',
     color: 0x2b6cb0,
+    clouds: true,
+    nightMap: true,
+    atmosphere: 0x6bb4ff,
     moons: [MOON],
   },
   {
