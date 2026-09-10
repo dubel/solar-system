@@ -3,7 +3,7 @@ import * as THREE from 'three'
 const MIN_PITCH = 0.08
 const MAX_PITCH = Math.PI - 0.08
 const MIN_DISTANCE = 2.5
-const MAX_DISTANCE = 420
+const MAX_DISTANCE = 720
 const MOVE_THRESHOLD = 8
 const MOVE_KEYS = new Set([
   'Space',

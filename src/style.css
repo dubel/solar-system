@@ -276,11 +276,15 @@ canvas {
 .explorer {
   position: absolute;
   z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
   bottom: max(12px, env(safe-area-inset-bottom));
   left: max(12px, env(safe-area-inset-left));
 }
 
-.explorer-toggle {
+.explorer-toggle,
+.view-toggle {
   display: grid;
   place-items: center;
   width: 46px;
@@ -296,17 +300,20 @@ canvas {
   transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.explorer-toggle:hover {
+.explorer-toggle:hover,
+.view-toggle:hover {
   transform: scale(1.06);
   border-color: rgba(255, 236, 190, 0.5);
   color: #ffd27a;
 }
 
-.explorer-toggle:active {
+.explorer-toggle:active,
+.view-toggle:active {
   transform: scale(0.95);
 }
 
-.explorer-icon {
+.explorer-icon,
+.view-icon {
   width: 22px;
   height: 22px;
   fill: none;
@@ -316,7 +323,8 @@ canvas {
   stroke-linejoin: round;
 }
 
-.explorer.open .explorer-toggle {
+.explorer.open .explorer-toggle,
+.explorer.open .view-toggle {
   display: none;
 }
 

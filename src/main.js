@@ -51,6 +51,7 @@ const explorer = bindExplorer({
   },
 })
 const facts = bindFacts({ onClose: clearFocus })
+document.querySelector('#view-toggle').addEventListener('click', cycleCameraView)
 
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2500)
@@ -80,6 +81,17 @@ const lookTarget = new THREE.Vector3()
 
 let system = { bodies: [], pickables: [] }
 let focus = null
+
+// Cykl widoków kamery (przycisk „kamera"): domyślny → rzut z góry → zapisany, w pętli.
+let view = null
+let cameraStep = 0
+let defaultView = null
+let savedView = null
+const overviewView = {
+  position: new THREE.Vector3(0, 660, 150),
+  target: new THREE.Vector3(0, 0, 0),
+}
+const viewTargetTmp = new THREE.Vector3()
 
 function loadTextures() {
   const loader = new THREE.TextureLoader()
@@ -137,6 +149,8 @@ function viewportSize() {
 }
 
 function setFocus(mesh) {
+  view = null
+  cameraStep = 0
   mesh.getWorldPosition(lookTarget)
   focusOffset.copy(camera.position).sub(lookTarget)
   if (focusOffset.length() < 0.001) {
@@ -166,6 +180,7 @@ function clearFocus() {
 function updateFocus(delta) {
   if (!focus) return
   if (fly.isMoving()) {
+    cameraStep = 0
     clearFocus()
     return
   }
@@ -177,6 +192,59 @@ function updateFocus(delta) {
   const destination = lookTarget.clone().add(focusOffset)
   camera.position.lerpVectors(focus.from, destination, eased)
   fly.follow(lookTarget)
+}
+
+function captureView() {
+  return { position: camera.position.clone(), target: fly.target.clone() }
+}
+
+function startView(state) {
+  if (!state) return
+  clearFocus()
+  view = {
+    fromPosition: camera.position.clone(),
+    toPosition: state.position.clone(),
+    fromTarget: fly.target.clone(),
+    toTarget: state.target.clone(),
+    elapsed: 0,
+    duration: 1.1,
+  }
+}
+
+function updateView(delta) {
+  if (!view) return
+  // Chwyt myszą/klawiaturą przerywa animację i oddaje sterowanie użytkownikowi.
+  if (fly.isMoving()) {
+    view = null
+    cameraStep = 0
+    fly.syncFromCamera()
+    return
+  }
+  view.elapsed += delta
+  const t = Math.min(1, view.elapsed / view.duration)
+  const eased = 1 - (1 - t) ** 3
+  camera.position.lerpVectors(view.fromPosition, view.toPosition, eased)
+  viewTargetTmp.lerpVectors(view.fromTarget, view.toTarget, eased)
+  camera.lookAt(viewTargetTmp)
+  if (t >= 1) {
+    fly.setTarget(view.toTarget)
+    view = null
+  }
+}
+
+function cycleCameraView() {
+  if (cameraStep === 0) {
+    // Pierwszy klik: zapamiętaj bieżący widok, wróć do domyślnego.
+    savedView = captureView()
+    startView(defaultView)
+  } else if (cameraStep === 1) {
+    // Drugi klik: rzut z góry na cały układ.
+    startView(overviewView)
+  } else {
+    // Trzeci klik: przywróć widok sprzed pierwszego kliknięcia.
+    startView(savedView ?? defaultView)
+  }
+  cameraStep = (cameraStep + 1) % 3
 }
 
 function onResize() {
@@ -208,7 +276,9 @@ function animate() {
   // ISS wygląda źle przy szybkim upływie czasu — pokazujemy ją tylko na pauzie i 0.001 doby/s.
   const issMesh = meshById.get('iss')
   if (issMesh) issMesh.visible = timeScale <= 0.001
-  if (focus) {
+  if (view) {
+    updateView(delta)
+  } else if (focus) {
     updateFocus(delta)
   } else {
     fly.update(delta)
@@ -227,6 +297,7 @@ async function start() {
   updateSolarSystem(system.bodies, simTimeDays)
   hud.setDate(simTimeDays)
   hud.setFocus(null)
+  defaultView = captureView()
   loading.classList.add('hidden')
   window.addEventListener('resize', onResize)
   window.visualViewport?.addEventListener('resize', onResize)
