@@ -29,7 +29,7 @@ function isoToSimDays(iso) {
 // Nieliniowe „nastawy" tempa (doby / s). Indeks 0 = pauza; drobne kroki na starcie
 // pozwalają wygodnie obserwować szybkie obiekty (np. ISS), a końcówka — szybki przegląd.
 const TIME_SCALES = [0, 0.001, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 20, 40]
-const DEFAULT_INDEX = 7 // 1 dzień / s
+const DEFAULT_INDEX = 6 // 0.5 dnia / s
 
 function indexFromScale(days) {
   let best = 0

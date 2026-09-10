@@ -82,9 +82,10 @@ const lookTarget = new THREE.Vector3()
 let system = { bodies: [], pickables: [] }
 let focus = null
 
-// Cykl widoków kamery (przycisk „kamera"): na przemian domyślny ↔ rzut z góry.
+// Toggle widoków kamery: start (domyślny) ↔ rzut z góry. Na starcie jesteśmy już
+// w widoku domyślnym, więc pierwsze kliknięcie idzie od razu na rzut z góry.
 let view = null
-let cameraStep = 0
+let showingOverview = false
 const defaultView = {
   position: new THREE.Vector3(0, 28, 78),
   target: new THREE.Vector3(0, 0, 0),
@@ -152,7 +153,6 @@ function viewportSize() {
 
 function setFocus(mesh) {
   view = null
-  cameraStep = 0
   mesh.getWorldPosition(lookTarget)
   focusOffset.copy(camera.position).sub(lookTarget)
   if (focusOffset.length() < 0.001) {
@@ -182,7 +182,6 @@ function clearFocus() {
 function updateFocus(delta) {
   if (!focus) return
   if (fly.isMoving()) {
-    cameraStep = 0
     clearFocus()
     return
   }
@@ -214,7 +213,6 @@ function updateView(delta) {
   // Chwyt myszą/klawiaturą przerywa animację i oddaje sterowanie użytkownikowi.
   if (fly.isMoving()) {
     view = null
-    cameraStep = 0
     fly.syncFromCamera()
     return
   }
@@ -231,9 +229,8 @@ function updateView(delta) {
 }
 
 function cycleCameraView() {
-  // Na przemian: widok domyślny (stan początkowy) ↔ rzut z góry na cały układ.
-  startView(cameraStep === 0 ? defaultView : overviewView)
-  cameraStep = (cameraStep + 1) % 2
+  showingOverview = !showingOverview
+  startView(showingOverview ? overviewView : defaultView)
 }
 
 function onResize() {
