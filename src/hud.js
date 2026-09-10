@@ -32,6 +32,7 @@ export function bindHud({ onJumpToDate } = {}) {
   const timeValue = document.querySelector('#time-value')
   const dateValue = document.querySelector('#sim-date')
   const dateInput = document.querySelector('#sim-date-input')
+  const dateOverlay = document.querySelector('.date-overlay')
   const distanceValue = document.querySelector('#view-distance')
   const focusValue = document.querySelector('#focus-name')
   let pickerOpen = false
@@ -56,6 +57,18 @@ export function bindHud({ onJumpToDate } = {}) {
     onJumpToDate?.(isoToSimDays(dateInput.value))
   }
 
+  const openPicker = (event) => {
+    event.preventDefault()
+    dateInput.focus({ preventScroll: true })
+    if (typeof dateInput.showPicker === 'function') {
+      try {
+        dateInput.showPicker()
+      } catch {
+        dateInput.click()
+      }
+    }
+  }
+
   timeScale.addEventListener('input', syncScaleLabel)
   syncScaleLabel()
 
@@ -66,6 +79,10 @@ export function bindHud({ onJumpToDate } = {}) {
     pickerOpen = false
   })
   dateInput.addEventListener('change', jumpFromInput)
+  dateOverlay?.addEventListener('click', openPicker)
+  dateOverlay?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') openPicker(event)
+  })
 
   return {
     getTimeScale() {

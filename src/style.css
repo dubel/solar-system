@@ -141,6 +141,42 @@ canvas {
   cursor: pointer;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .date-control {
+    padding-right: 2rem;
+  }
+
+  .date-overlay {
+    right: 2rem;
+    pointer-events: auto;
+  }
+
+  .date-control input[type='date'] {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 1.6rem;
+    height: 1.6rem;
+    transform: translateY(-50%);
+    opacity: 1;
+    pointer-events: auto;
+    color: transparent;
+    background: transparent;
+  }
+
+  .date-control input[type='date']::-webkit-calendar-picker-indicator {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+    opacity: 1;
+    filter: invert(1) brightness(1.15);
+  }
+
+  .date-control:hover .date-overlay strong {
+    color: #f0c36a;
+  }
+}
+
 .date-overlay strong {
   text-decoration: underline;
   text-underline-offset: 3px;
