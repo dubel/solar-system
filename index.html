@@ -2,13 +2,20 @@
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Układ Słoneczny</title>
   </head>
   <body>
     <div id="loading">Ładowanie Układu Słonecznego…</div>
-    <aside class="hud">
-      <h1>Układ Słoneczny</h1>
+    <details class="hud" id="hud-panel" open>
+      <summary>
+        <span class="hud-title">Układ Słoneczny</span>
+      </summary>
       <p class="subtitle">Interaktywny model 3D</p>
       <label>
         <span>Czas</span>
@@ -17,15 +24,18 @@
       <input id="time-scale" type="range" min="0" max="40" step="0.25" value="1" />
       <div class="meta">
         <div>Data: <strong id="sim-date">1 sty 2000</strong></div>
-        <div>Prędkość lotu: <strong id="fly-speed">28 j/s</strong></div>
+        <div>Odległość: <strong id="view-distance">80</strong></div>
         <div>Cel: <strong id="focus-name">swobodny lot</strong></div>
       </div>
-      <p class="hint">
-        <kbd>WASD</kbd> / strzałki — lot · <kbd>Q</kbd><kbd>E</kbd> / <kbd>Shift</kbd><kbd>Spacja</kbd> — góra/dół
-        · przeciągnij myszą — rozglądanie · kółko — prędkość · kliknij planetę, żeby podlecieć
+      <p class="hint hint-desktop">
+        <kbd>WASD</kbd> / strzałki — lot · przeciągnij myszą — obrót · kółko — przybliżenie · kliknij
+        planetę, żeby podlecieć
+      </p>
+      <p class="hint hint-touch">
+        1 palec — obrót · 2 palce — przesunięcie · pinch — przybliżenie · tap w planetę
       </p>
       <p class="credit">Tekstury: Solar System Scope (CC BY 4.0), na podstawie danych NASA.</p>
-    </aside>
+    </details>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

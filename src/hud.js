@@ -1,10 +1,15 @@
 export function bindHud() {
+  const panel = document.querySelector('#hud-panel')
   const timeScale = document.querySelector('#time-scale')
   const timeValue = document.querySelector('#time-value')
   const dateValue = document.querySelector('#sim-date')
-  const speedValue = document.querySelector('#fly-speed')
+  const distanceValue = document.querySelector('#view-distance')
   const focusValue = document.querySelector('#focus-name')
   const epoch = Date.UTC(2000, 0, 1, 12)
+
+  if (window.matchMedia('(max-width: 720px), (pointer: coarse)').matches) {
+    panel.open = false
+  }
 
   const formatScale = (daysPerSecond) => {
     if (Number(daysPerSecond) === 0) return 'pauza'
@@ -32,8 +37,8 @@ export function bindHud() {
         year: 'numeric',
       }).format(date)
     },
-    setSpeed(speed) {
-      speedValue.textContent = `${speed.toFixed(0)} j/s`
+    setDistance(distance) {
+      distanceValue.textContent = distance.toFixed(0)
     },
     setFocus(name) {
       focusValue.textContent = name ?? 'swobodny lot'

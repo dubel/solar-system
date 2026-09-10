@@ -76,6 +76,16 @@ function loadTextures() {
   ).then((pairs) => Object.fromEntries(pairs))
 }
 
+function viewportSize() {
+  const viewport = window.visualViewport
+  return {
+    width: Math.round(viewport?.width ?? window.innerWidth),
+    height: Math.round(viewport?.height ?? window.innerHeight),
+    offsetLeft: viewport?.offsetLeft ?? 0,
+    offsetTop: viewport?.offsetTop ?? 0,
+  }
+}
+
 function setFocus(mesh) {
   mesh.getWorldPosition(lookTarget)
   focusOffset.copy(camera.position).sub(lookTarget)
@@ -86,8 +96,6 @@ function setFocus(mesh) {
   focus = {
     mesh,
     from: camera.position.clone(),
-    to: lookTarget.clone().add(focusOffset),
-    lookFrom: lookTarget.clone(),
     elapsed: 0,
     duration: 1.15,
   }
@@ -99,6 +107,7 @@ function updateFocus(delta) {
   if (fly.isMoving()) {
     focus = null
     hud.setFocus(null)
+    fly.syncFromCamera()
     return
   }
 
@@ -108,25 +117,22 @@ function updateFocus(delta) {
   focus.mesh.getWorldPosition(lookTarget)
   const destination = lookTarget.clone().add(focusOffset)
   camera.position.lerpVectors(focus.from, destination, eased)
-  const currentLook = lookTarget.clone()
-  camera.lookAt(currentLook)
-  fly.euler.setFromQuaternion(camera.quaternion)
-  if (t >= 1) {
-    hud.setFocus(focus.mesh.userData.name)
-  }
+  fly.follow(lookTarget)
 }
 
 function onResize() {
-  camera.aspect = window.innerWidth / window.innerHeight
+  const { width, height } = viewportSize()
+  camera.aspect = width / height
   camera.updateProjectionMatrix()
-  renderer.setSize(window.innerWidth, window.innerHeight)
-  labelRenderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.setSize(width, height)
+  labelRenderer.setSize(width, height)
 }
 
 function onCanvasClick(event) {
   if (!fly.wasClick()) return
-  pointer.x = (event.clientX / window.innerWidth) * 2 - 1
-  pointer.y = -(event.clientY / window.innerHeight) * 2 + 1
+  const { width, height, offsetLeft, offsetTop } = viewportSize()
+  pointer.x = ((event.clientX - offsetLeft) / width) * 2 - 1
+  pointer.y = -((event.clientY - offsetTop) / height) * 2 + 1
   raycaster.setFromCamera(pointer, camera)
   const hits = raycaster.intersectObjects(system.pickables, false)
   if (hits.length > 0) {
@@ -145,7 +151,7 @@ function animate() {
     fly.update(delta)
   }
   hud.setDate(simTimeDays)
-  hud.setSpeed(fly.speed)
+  hud.setDistance(fly.distance)
   renderer.render(scene, camera)
   labelRenderer.render(scene, camera)
 }
@@ -156,10 +162,12 @@ async function start() {
   system = createSolarSystem(scene, textures)
   updateSolarSystem(system.bodies, simTimeDays)
   hud.setDate(simTimeDays)
-  hud.setSpeed(fly.speed)
+  hud.setDistance(fly.distance)
   hud.setFocus(null)
   loading.classList.add('hidden')
   window.addEventListener('resize', onResize)
+  window.visualViewport?.addEventListener('resize', onResize)
+  window.visualViewport?.addEventListener('scroll', onResize)
   renderer.domElement.addEventListener('click', onCanvasClick)
   clock.start()
   animate()
