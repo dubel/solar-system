@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js'
 import {
+  ISS,
   PLANETS,
   SUN,
   visualOrbitRadius,
@@ -63,7 +64,33 @@ function planetMaterial(texture, color) {
   })
 }
 
-export function createSolarSystem(scene, textures) {
+// Normalizuje wczytany model glTF (centruje i skaluje do umownego rozmiaru sceny)
+// oraz opakowuje go w grupy: anchor (orbita) -> spin (obrót własny) -> model.
+function createSatellite(model, data) {
+  const box = new THREE.Box3().setFromObject(model)
+  const size = box.getSize(new THREE.Vector3())
+  const center = box.getCenter(new THREE.Vector3())
+  const maxDim = Math.max(size.x, size.y, size.z) || 1
+  const scale = data.targetSize / maxDim
+
+  model.position.sub(center) // pivot w środku modelu
+
+  const spin = new THREE.Group()
+  spin.add(model)
+  spin.scale.setScalar(scale)
+  spin.userData = {
+    id: data.id,
+    name: data.name,
+    focusDistance: data.focusDistance,
+  }
+
+  const anchor = new THREE.Group()
+  anchor.add(spin)
+
+  return { data, anchor, spin }
+}
+
+export function createSolarSystem(scene, textures, models = {}) {
   const pickables = []
   const bodies = []
 
@@ -178,6 +205,14 @@ export function createSolarSystem(scene, textures) {
       }
     }
 
+    const satellites = []
+    if (planet.id === 'earth' && models.iss) {
+      const iss = createSatellite(models.iss, ISS)
+      anchor.add(iss.anchor)
+      pickables.push(iss.spin)
+      satellites.push(iss)
+    }
+
     bodies.push({
       kind: 'planet',
       data: planet,
@@ -185,6 +220,7 @@ export function createSolarSystem(scene, textures) {
       anchor,
       spin: mesh,
       moons,
+      satellites,
     })
   }
 
@@ -220,6 +256,19 @@ export function updateSolarSystem(bodies, simTimeDays) {
         ),
       )
       moon.spin.rotation.y = (simTimeDays / moon.data.rotationPeriodDays) * Math.PI * 2
+    }
+
+    for (const sat of body.satellites ?? []) {
+      sat.anchor.position.copy(
+        orbitalPosition(
+          sat.data.visualOrbitRadius,
+          sat.data.inclinationDeg,
+          sat.data.orbitalPeriodDays,
+          sat.data.meanLongitudeDeg,
+          simTimeDays,
+        ),
+      )
+      sat.spin.rotation.y = (simTimeDays / sat.data.rotationPeriodDays) * Math.PI * 2
     }
   }
 }

@@ -35,6 +35,20 @@ export const MOON = {
   visualOrbitRadius: 2.8,
 }
 
+export const ISS = {
+  id: 'iss',
+  name: 'ISS',
+  fullName: 'Międzynarodowa Stacja Kosmiczna',
+  model: 'iss.glb',
+  orbitalPeriodDays: 0.06452, // ~92.9 min
+  rotationPeriodDays: 0.35, // powolny obrót własny (efekt wizualny)
+  inclinationDeg: 51.64,
+  meanLongitudeDeg: 0,
+  visualOrbitRadius: 1.7,
+  targetSize: 0.55, // znormalizowany największy wymiar modelu w jednostkach sceny
+  focusDistance: 2.8,
+}
+
 export const PLANETS = [
   {
     id: 'mercury',

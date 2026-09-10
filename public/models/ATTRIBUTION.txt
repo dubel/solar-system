@@ -1,0 +1,10 @@
+iss.glb — International Space Station (ISS) (B)
+Source: NASA 3D Resources (https://science.nasa.gov/3d-resources/)
+Original: NASA/Ames Research Center
+Repository: https://github.com/nasa/NASA-3D-Resources
+  "3D Models/International Space Station (ISS) (B)/International Space Station (ISS) (B).glb"
+License: Public domain — NASA assets are free and without copyright.
+See NASA Images and Media Usage Guidelines: https://www.nasa.gov/nasa-brand-center/images-and-media
+
+Note: model is Draco-compressed (KHR_draco_mesh_compression). The glTF Draco decoder
+is bundled in /public/draco/ (from the three.js distribution) so it works offline and on GitHub Pages.

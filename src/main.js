@@ -1,4 +1,6 @@
 import * as THREE from 'three'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js'
 import { bindExplorer } from './explorer.js'
 import { FlyCamera } from './flyCamera.js'
@@ -89,6 +91,29 @@ function loadTextures() {
   ).then((pairs) => Object.fromEntries(pairs))
 }
 
+function loadISSModel() {
+  const dracoLoader = new DRACOLoader()
+  dracoLoader.setDecoderPath(`${import.meta.env.BASE_URL}draco/`)
+  const loader = new GLTFLoader()
+  loader.setDRACOLoader(dracoLoader)
+  return new Promise((resolve) => {
+    loader.load(
+      `${import.meta.env.BASE_URL}models/iss.glb`,
+      (gltf) => {
+        dracoLoader.dispose()
+        resolve(gltf.scene)
+      },
+      undefined,
+      (error) => {
+        // Brak modelu nie może wywrócić całej sceny — degradujemy się łagodnie.
+        console.warn('Nie udało się wczytać modelu ISS:', error)
+        dracoLoader.dispose()
+        resolve(null)
+      },
+    )
+  })
+}
+
 function viewportSize() {
   const viewport = window.visualViewport
   return {
@@ -171,10 +196,11 @@ function animate() {
 }
 
 async function start() {
-  const textures = await loadTextures()
+  const [textures, issModel] = await Promise.all([loadTextures(), loadISSModel()])
   scene.add(createSky(textures.milkyway))
-  system = createSolarSystem(scene, textures)
+  system = createSolarSystem(scene, textures, { iss: issModel })
   meshById = new Map(system.pickables.map((mesh) => [mesh.userData.id, mesh]))
+  explorer.setAvailable('iss', meshById.has('iss'))
   updateSolarSystem(system.bodies, simTimeDays)
   hud.setDate(simTimeDays)
   hud.setFocus(null)

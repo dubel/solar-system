@@ -1,4 +1,17 @@
-import { PLANETS, SUN } from './data/celestialBodies.js'
+import { ISS, PLANETS, SUN } from './data/celestialBodies.js'
+
+const SATELLITE_ICON = `
+<svg viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="10.4" y="9.4" width="3.2" height="5.2" rx="0.6" />
+  <rect x="3.2" y="9.8" width="5.4" height="4.4" rx="0.5" />
+  <rect x="15.4" y="9.8" width="5.4" height="4.4" rx="0.5" />
+  <line x1="8.6" y1="12" x2="10.4" y2="12" />
+  <line x1="13.6" y1="12" x2="15.4" y2="12" />
+  <line x1="5.9" y1="9.8" x2="5.9" y2="14.2" />
+  <line x1="18.1" y1="9.8" x2="18.1" y2="14.2" />
+  <line x1="12" y1="9.4" x2="12" y2="6.4" />
+  <circle cx="12" cy="5.6" r="0.9" />
+</svg>`
 
 function textureUrl(file) {
   return `${import.meta.env.BASE_URL}textures/${file}`
@@ -23,6 +36,16 @@ function buildEntries() {
         texture: moon.texture,
       })
     }
+
+    if (planet.id === 'earth') {
+      entries.push({
+        id: ISS.id,
+        name: ISS.name,
+        fullName: ISS.fullName,
+        kind: `Stacja kosmiczna · ${planet.name}`,
+        icon: SATELLITE_ICON,
+      })
+    }
   }
 
   return entries
@@ -38,9 +61,14 @@ function createItem(entry, index, onSelect) {
 
   const thumb = document.createElement('span')
   thumb.className = 'object-thumb'
-  thumb.style.setProperty('--tex', `url("${textureUrl(entry.texture)}")`)
-  // Stagger the rotation so the thumbnails do not all spin in lockstep.
-  thumb.style.setProperty('--delay', `-${(index % 6) * 1.3}s`)
+  if (entry.icon) {
+    thumb.classList.add('object-thumb--icon')
+    thumb.innerHTML = entry.icon
+  } else {
+    thumb.style.setProperty('--tex', `url("${textureUrl(entry.texture)}")`)
+    // Stagger the rotation so the thumbnails do not all spin in lockstep.
+    thumb.style.setProperty('--delay', `-${(index % 6) * 1.3}s`)
+  }
 
   const info = document.createElement('span')
   info.className = 'object-info'
@@ -54,6 +82,7 @@ function createItem(entry, index, onSelect) {
   kind.textContent = entry.kind
 
   info.append(name, kind)
+  if (entry.fullName) button.title = entry.fullName
   button.append(thumb, info)
   button.addEventListener('click', () => onSelect?.(entry.id))
   li.append(button)
@@ -95,6 +124,12 @@ export function bindExplorer({ onSelect } = {}) {
       for (const item of items) {
         item.button.classList.toggle('active', item.id === id)
       }
+    },
+    setAvailable(id, available) {
+      const item = items.find((entry) => entry.id === id)
+      if (!item) return
+      item.button.classList.toggle('unavailable', !available)
+      item.button.disabled = !available
     },
     open() {
       setOpen(true)
