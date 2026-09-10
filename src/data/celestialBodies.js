@@ -18,6 +18,12 @@ export const SUN = {
   visualRadius: 10.5,
   texture: 'sun.jpg',
   color: 0xffcc66,
+  info: {
+    gravity: 274,
+    tempC: 5500,
+    planets: 8,
+    fact: 'Zawiera około 99,8% masy całego Układu Słonecznego.',
+  },
 }
 
 export const MOON = {
@@ -33,6 +39,12 @@ export const MOON = {
   color: 0xc2c2c2,
   visualRadius: 0.32,
   visualOrbitRadius: 2.8,
+  info: {
+    gravity: 1.62,
+    tempC: -20,
+    distanceKm: 384400,
+    fact: 'Zawsze zwraca ku Ziemi tę samą stronę (obrót synchroniczny).',
+  },
 }
 
 export const ISS = {
@@ -47,6 +59,12 @@ export const ISS = {
   visualOrbitRadius: 1.7,
   targetSize: 0.6, // znormalizowany największy wymiar modelu w jednostkach sceny
   focusDistance: 2.8,
+  info: {
+    altitudeKm: 420,
+    periodMin: 92.9,
+    speedKms: 7.66,
+    fact: 'Międzynarodowa Stacja Kosmiczna okrąża Ziemię co ~90 min, ok. 16 razy na dobę, na wysokości ~400 km.',
+  },
 }
 
 export const PLANETS = [
@@ -62,6 +80,12 @@ export const PLANETS = [
     meanLongitudeDeg: 252.251,
     texture: 'mercury.jpg',
     color: 0x8c7a63,
+    info: {
+      gravity: 3.7,
+      tempC: 167,
+      moons: 0,
+      fact: 'Ma najbardziej ekstremalne wahania temperatury spośród planet.',
+    },
   },
   {
     id: 'venus',
@@ -75,6 +99,12 @@ export const PLANETS = [
     meanLongitudeDeg: 181.979,
     texture: 'venus.jpg',
     color: 0xe6c87a,
+    info: {
+      gravity: 8.87,
+      tempC: 464,
+      moons: 0,
+      fact: 'Najgorętsza planeta — gęsta atmosfera CO₂ wywołuje potężny efekt cieplarniany.',
+    },
   },
   {
     id: 'earth',
@@ -90,6 +120,12 @@ export const PLANETS = [
     color: 0x2b6cb0,
     clouds: true,
     nightMap: true,
+    info: {
+      gravity: 9.81,
+      tempC: 15,
+      moons: 1,
+      fact: 'Jedyny znany obiekt z życiem i ciekłą wodą na powierzchni.',
+    },
     moons: [MOON],
   },
   {
@@ -104,6 +140,12 @@ export const PLANETS = [
     meanLongitudeDeg: 355.453,
     texture: 'mars.jpg',
     color: 0xc1440e,
+    info: {
+      gravity: 3.72,
+      tempC: -63,
+      moons: 2,
+      fact: 'Znajduje się tu Olympus Mons — najwyższy wulkan w Układzie Słonecznym.',
+    },
   },
   {
     id: 'jupiter',
@@ -117,6 +159,12 @@ export const PLANETS = [
     meanLongitudeDeg: 34.351,
     texture: 'jupiter.jpg',
     color: 0xd4a373,
+    info: {
+      gravity: 24.79,
+      tempC: -110,
+      moons: 95,
+      fact: 'Wielka Czerwona Plama to burza większa od Ziemi, trwająca od stuleci.',
+    },
   },
   {
     id: 'saturn',
@@ -130,6 +178,12 @@ export const PLANETS = [
     meanLongitudeDeg: 50.077,
     texture: 'saturn.jpg',
     color: 0xf0d9a0,
+    info: {
+      gravity: 10.44,
+      tempC: -140,
+      moons: 146,
+      fact: 'Jego okazałe pierścienie zbudowane są głównie z lodu i okruchów skalnych.',
+    },
     rings: {
       innerScale: 1.2,
       outerScale: 2.27,
@@ -148,6 +202,12 @@ export const PLANETS = [
     meanLongitudeDeg: 314.055,
     texture: 'uranus.jpg',
     color: 0x7de3e3,
+    info: {
+      gravity: 8.69,
+      tempC: -195,
+      moons: 28,
+      fact: 'Obraca się „na boku" — oś nachylona o niemal 98°.',
+    },
   },
   {
     id: 'neptune',
@@ -161,5 +221,11 @@ export const PLANETS = [
     meanLongitudeDeg: 304.349,
     texture: 'neptune.jpg',
     color: 0x3b6cff,
+    info: {
+      gravity: 11.15,
+      tempC: -200,
+      moons: 16,
+      fact: 'Wieją tu najsilniejsze wiatry w Układzie Słonecznym — do około 2100 km/h.',
+    },
   },
 ]

@@ -3,6 +3,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js'
 import { bindExplorer } from './explorer.js'
+import { bindFacts } from './facts.js'
 import { FlyCamera } from './flyCamera.js'
 import { bindHud } from './hud.js'
 import { createSky } from './sky.js'
@@ -34,6 +35,9 @@ const hud = bindHud({
   },
 })
 
+const isCompactLayout = () =>
+  window.matchMedia('(pointer: coarse), (max-width: 720px)').matches
+
 let meshById = new Map()
 const explorer = bindExplorer({
   onSelect(id) {
@@ -42,8 +46,11 @@ const explorer = bindExplorer({
     setFocus(mesh)
     // ISS okrąża Ziemię ~15×/s przy 1 dobie/s — zwalniamy, by dało się ją obserwować.
     if (id === 'iss') hud.setTimeScale(0.001)
+    // Na wąskich ekranach lista i panel faktów rywalizują o dół — zamykamy listę.
+    if (isCompactLayout()) explorer.close()
   },
 })
+const facts = bindFacts({ onClose: clearFocus })
 
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2500)
@@ -144,15 +151,22 @@ function setFocus(mesh) {
   }
   hud.setFocus(mesh.userData.name)
   explorer.setActive(mesh.userData.id)
+  facts.show(mesh.userData.id)
+}
+
+function clearFocus() {
+  const wasFocused = focus !== null
+  focus = null
+  hud.setFocus(null)
+  explorer.setActive(null)
+  facts.hide()
+  if (wasFocused) fly.syncFromCamera()
 }
 
 function updateFocus(delta) {
   if (!focus) return
   if (fly.isMoving()) {
-    focus = null
-    hud.setFocus(null)
-    explorer.setActive(null)
-    fly.syncFromCamera()
+    clearFocus()
     return
   }
 

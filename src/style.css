@@ -517,6 +517,131 @@ canvas {
   }
 }
 
+.facts {
+  position: absolute;
+  z-index: 3;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  width: min(300px, calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  max-height: calc(100vh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 236, 190, 0.18);
+  border-radius: 14px;
+  background: rgba(8, 12, 24, 0.72);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  -webkit-overflow-scrolling: touch;
+  animation: facts-in 0.22s ease;
+}
+
+.facts[hidden] {
+  display: none;
+}
+
+.facts-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.facts-heading {
+  min-width: 0;
+}
+
+.facts-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.facts-kind {
+  margin: 3px 0 0;
+  overflow: hidden;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  color: #f0c36a;
+}
+
+.facts-close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #c9d0df;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.facts-close:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.facts-stats {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.facts-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.84rem;
+}
+
+.facts-label {
+  flex-shrink: 0;
+  color: #9aa3b6;
+}
+
+.facts-value {
+  font-weight: 600;
+  text-align: right;
+}
+
+.facts-note {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #d7dce8;
+}
+
+.facts-note[hidden] {
+  display: none;
+}
+
+@keyframes facts-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .facts {
+    animation: none;
+  }
+}
+
 @media (pointer: coarse), (max-width: 720px) {
   .hint-desktop {
     display: none;
@@ -528,5 +653,15 @@ canvas {
 
   .label {
     font-size: 14px;
+  }
+
+  /* Na wąskich ekranach panel faktów staje się arkuszem u dołu, nad ikoną lupy. */
+  .facts {
+    top: auto;
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 58px);
+    width: auto;
+    max-height: 42vh;
   }
 }
