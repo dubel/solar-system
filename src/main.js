@@ -82,11 +82,13 @@ const lookTarget = new THREE.Vector3()
 let system = { bodies: [], pickables: [] }
 let focus = null
 
-// Cykl widoków kamery (przycisk „kamera"): domyślny → rzut z góry → zapisany, w pętli.
+// Cykl widoków kamery (przycisk „kamera"): na przemian domyślny ↔ rzut z góry.
 let view = null
 let cameraStep = 0
-let defaultView = null
-let savedView = null
+const defaultView = {
+  position: new THREE.Vector3(0, 28, 78),
+  target: new THREE.Vector3(0, 0, 0),
+}
 const overviewView = {
   position: new THREE.Vector3(0, 660, 150),
   target: new THREE.Vector3(0, 0, 0),
@@ -194,10 +196,6 @@ function updateFocus(delta) {
   fly.follow(lookTarget)
 }
 
-function captureView() {
-  return { position: camera.position.clone(), target: fly.target.clone() }
-}
-
 function startView(state) {
   if (!state) return
   clearFocus()
@@ -233,18 +231,9 @@ function updateView(delta) {
 }
 
 function cycleCameraView() {
-  if (cameraStep === 0) {
-    // Pierwszy klik: zapamiętaj bieżący widok, wróć do domyślnego.
-    savedView = captureView()
-    startView(defaultView)
-  } else if (cameraStep === 1) {
-    // Drugi klik: rzut z góry na cały układ.
-    startView(overviewView)
-  } else {
-    // Trzeci klik: przywróć widok sprzed pierwszego kliknięcia.
-    startView(savedView ?? defaultView)
-  }
-  cameraStep = (cameraStep + 1) % 3
+  // Na przemian: widok domyślny (stan początkowy) ↔ rzut z góry na cały układ.
+  startView(cameraStep === 0 ? defaultView : overviewView)
+  cameraStep = (cameraStep + 1) % 2
 }
 
 function onResize() {
@@ -297,7 +286,6 @@ async function start() {
   updateSolarSystem(system.bodies, simTimeDays)
   hud.setDate(simTimeDays)
   hud.setFocus(null)
-  defaultView = captureView()
   loading.classList.add('hidden')
   window.addEventListener('resize', onResize)
   window.visualViewport?.addEventListener('resize', onResize)
