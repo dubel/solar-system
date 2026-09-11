@@ -367,6 +367,7 @@ function animate() {
   }
   notableStars?.tick(clock.elapsedTime)
   updateConstellationLabels(skyRoot, camera)
+  facts.update(system.bodies)
   hud.setDate(simTimeDays)
   renderer.render(scene, camera)
   labelRenderer.render(scene, camera)

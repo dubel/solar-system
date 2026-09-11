@@ -1,5 +1,6 @@
 import { ISS, PLANETS, SUN } from './data/celestialBodies.js'
 import { NOTABLE_STARS } from './data/notableStars.js'
+import { drawMoonPhase, moonPhaseFromBodies } from './moonPhase.js'
 
 const AU_KM = 149_597_870
 const EARTH_RADIUS_KM = 6371
@@ -136,9 +137,25 @@ export function bindFacts({ onClose } = {}) {
   const factEl = document.querySelector('#facts-fact')
   const closeButton = document.querySelector('#facts-close')
   const registry = buildRegistry()
+  let currentId = null
+  let phaseCanvas = null
+  let phaseNameEl = null
+  let lastBodies = null
 
   const hide = () => {
     panel.hidden = true
+    currentId = null
+    phaseCanvas = null
+    phaseNameEl = null
+  }
+
+  const updateMoonPhase = (bodies) => {
+    if (currentId !== 'moon' || !phaseCanvas || !phaseNameEl) return
+    const phase = moonPhaseFromBodies(bodies)
+    if (!phase) return
+    drawMoonPhase(phaseCanvas, phase)
+    const percent = Math.round(phase.illumination * 100)
+    phaseNameEl.textContent = `${phase.name} · ${percent}%`
   }
 
   const render = (entry) => {
@@ -158,6 +175,27 @@ export function bindFacts({ onClose } = {}) {
         return row
       }),
     )
+
+    phaseCanvas = null
+    phaseNameEl = null
+    if (entry.id === 'moon') {
+      const row = document.createElement('div')
+      row.className = 'facts-row facts-phase'
+      const label = document.createElement('span')
+      label.className = 'facts-label'
+      label.textContent = 'Faza'
+      const value = document.createElement('span')
+      value.className = 'facts-phase-value'
+      phaseCanvas = document.createElement('canvas')
+      phaseCanvas.className = 'moon-phase-canvas'
+      phaseCanvas.width = 56
+      phaseCanvas.height = 56
+      phaseNameEl = document.createElement('span')
+      phaseNameEl.className = 'facts-value'
+      value.append(phaseCanvas, phaseNameEl)
+      row.append(label, value)
+      statsEl.prepend(row)
+    }
     if (entry.fact) {
       factEl.textContent = entry.fact
       factEl.hidden = false
@@ -185,9 +223,15 @@ export function bindFacts({ onClose } = {}) {
         hide()
         return
       }
-      render(entry)
+      currentId = id
+      render({ ...entry, id })
       panel.hidden = false
       panel.scrollTop = 0
+      if (lastBodies) updateMoonPhase(lastBodies)
+    },
+    update(bodies) {
+      lastBodies = bodies
+      updateMoonPhase(bodies)
     },
     hide,
   }

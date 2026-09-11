@@ -684,9 +684,23 @@ canvas {
   color: #9aa3b6;
 }
 
-.facts-value {
+.facts-phase {
+  align-items: center;
+}
+
+.facts-phase-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 600;
   text-align: right;
+}
+
+.moon-phase-canvas {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
 }
 
 .facts-note {
