@@ -9,18 +9,18 @@ const dateFormatter = new Intl.DateTimeFormat('pl-PL', {
   timeZone: 'UTC',
 })
 
-function clampIsoDate(iso) {
+export function clampIsoDate(iso) {
   if (iso < DATE_MIN) return DATE_MIN
   if (iso > DATE_MAX) return DATE_MAX
   return iso
 }
 
-function simDaysToIso(simTimeDays) {
+export function simDaysToIso(simTimeDays) {
   const date = new Date(EPOCH_MS + simTimeDays * MS_PER_DAY)
   return date.toISOString().slice(0, 10)
 }
 
-function isoToSimDays(iso) {
+export function isoToSimDays(iso) {
   const [year, month, day] = iso.split('-').map(Number)
   if (!year || !month || !day) return 0
   return (Date.UTC(year, month - 1, day, 12) - EPOCH_MS) / MS_PER_DAY
@@ -44,7 +44,7 @@ function indexFromScale(days) {
   return best
 }
 
-export function bindHud({ onJumpToDate } = {}) {
+export function bindHud({ onJumpToDate, onTimeScaleChange } = {}) {
   const panel = document.querySelector('#hud-panel')
   const timeScale = document.querySelector('#time-scale')
   const timeValue = document.querySelector('#time-value')
@@ -82,6 +82,7 @@ export function bindHud({ onJumpToDate } = {}) {
     timeValue.textContent = formatScale(currentScale())
     if (currentScale() > 0) lastRunningIndex = Number(timeScale.value)
     updateToggle()
+    onTimeScaleChange?.(currentScale())
   }
 
   const togglePlay = () => {

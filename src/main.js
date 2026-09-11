@@ -5,7 +5,8 @@ import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js'
 import { bindExplorer } from './explorer.js'
 import { bindFacts } from './facts.js'
 import { FlyCamera } from './flyCamera.js'
-import { bindHud } from './hud.js'
+import { bindHud, clampIsoDate, isoToSimDays, simDaysToIso } from './hud.js'
+import { parseShareLink, writeShareLink } from './shareLink.js'
 import { createSky, createNotableStarMarkers, loadStarCatalog, resizeSky, setConstellationLinesVisible, updateConstellationLabels } from './sky.js'
 import { createSolarSystem, updateMoonLabels, updateSolarSystem } from './solarSystem.js'
 import './style.css'
@@ -32,10 +33,27 @@ const TEXTURE_FILES = {
 }
 
 const loading = document.querySelector('#loading')
-let simTimeDays = 0
+const share = parseShareLink()
+let simTimeDays = share.date ? isoToSimDays(share.date) : 0
+let shareReady = false
+let focusedId = null
+
+function currentShareDate() {
+  return clampIsoDate(simDaysToIso(simTimeDays))
+}
+
+function syncShareLink() {
+  if (!shareReady) return
+  writeShareLink({ date: currentShareDate(), focus: focusedId })
+}
+
 const hud = bindHud({
   onJumpToDate(days) {
     simTimeDays = days
+    syncShareLink()
+  },
+  onTimeScaleChange(daysPerSecond) {
+    if (daysPerSecond === 0) syncShareLink()
   },
 })
 
@@ -124,9 +142,11 @@ function currentLookPoint() {
 function setFocus(mesh) {
   view = null
   mesh.getWorldPosition(lookTarget)
+  focusedId = mesh.userData.id
   hud.setFocus(mesh.userData.name)
   explorer.setActive(mesh.userData.id)
   facts.show(mesh.userData.id)
+  syncShareLink()
 
   if (mesh.userData.kind === 'star') {
     focus = null
@@ -161,10 +181,12 @@ function setFocus(mesh) {
 function clearFocus() {
   const wasPlanetFocus = focus !== null
   focus = null
+  focusedId = null
   explorer.setActive(null)
   facts.hide()
   if (wasPlanetFocus) fly.syncFromCamera()
   if (!fly.lookPoint) hud.setFocus(null)
+  syncShareLink()
 }
 
 function finishStarAim(starPos) {
@@ -397,8 +419,16 @@ async function start() {
   meshById = new Map(system.pickables.map((mesh) => [mesh.userData.id, mesh]))
   explorer.setAvailable('iss', meshById.has('iss'))
   updateSolarSystem(system.bodies, simTimeDays)
+  if (share.isDeepLink) hud.setTimeScale(0)
   hud.setDate(simTimeDays)
-  hud.setFocus(null)
+  shareReady = true
+  const target = share.focus ? meshById.get(share.focus) : null
+  if (target) {
+    setFocus(target)
+  } else {
+    hud.setFocus(null)
+    if (share.isDeepLink) syncShareLink()
+  }
   loading.classList.add('hidden')
   window.addEventListener('resize', onResize)
   window.visualViewport?.addEventListener('resize', onResize)
