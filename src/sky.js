@@ -2,12 +2,56 @@ import * as THREE from 'three'
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js'
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js'
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js'
+import { NOTABLE_STARS } from './data/notableStars.js'
 
 const STAR_RADIUS = 860
 const LINE_RADIUS = 840
 const ECLIPTIC_OBLIQUITY = THREE.MathUtils.degToRad(23.439281)
 const STAR_KEEP_FRACTION = 0.7
 const STAR_BRIGHTNESS = 0.75
+const STAR_FOCUS_DISTANCE = 640
+
+export function equatorialToScene(raHours, decDeg, radius = 1) {
+  const ra = THREE.MathUtils.degToRad(raHours * 15)
+  const dec = THREE.MathUtils.degToRad(decDeg)
+  const xEq = Math.cos(dec) * Math.cos(ra)
+  const yEq = Math.cos(dec) * Math.sin(ra)
+  const zEq = Math.sin(dec)
+  const cosE = Math.cos(ECLIPTIC_OBLIQUITY)
+  const sinE = Math.sin(ECLIPTIC_OBLIQUITY)
+  const xEcl = xEq
+  const yEcl = yEq * cosE + zEq * sinE
+  const zEcl = -yEq * sinE + zEq * cosE
+  return new THREE.Vector3(xEcl, zEcl, yEcl).multiplyScalar(radius)
+}
+
+export function createNotableStarMarkers() {
+  const group = new THREE.Group()
+  group.name = 'notable-stars'
+  const pickables = []
+  const geometry = new THREE.SphereGeometry(22, 8, 8)
+  const material = new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    depthTest: false,
+  })
+
+  for (const star of NOTABLE_STARS) {
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.copy(equatorialToScene(star.raHours, star.decDeg, STAR_RADIUS))
+    mesh.userData = {
+      id: star.id,
+      name: star.name,
+      kind: 'star',
+      focusDistance: STAR_FOCUS_DISTANCE,
+    }
+    group.add(mesh)
+    pickables.push(mesh)
+  }
+
+  return { group, pickables }
+}
 
 function selectStarIndices(catalog) {
   const target = Math.round(catalog.count * STAR_KEEP_FRACTION)

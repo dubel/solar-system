@@ -1,4 +1,5 @@
 import { ISS, PLANETS, SUN } from './data/celestialBodies.js'
+import { NOTABLE_STARS } from './data/notableStars.js'
 
 const SATELLITE_ICON = `
 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -11,6 +12,13 @@ const SATELLITE_ICON = `
   <line x1="18.1" y1="9.8" x2="18.1" y2="14.2" />
   <line x1="12" y1="9.4" x2="12" y2="6.4" />
   <circle cx="12" cy="5.6" r="0.9" />
+</svg>`
+
+const STAR_ICON = `
+<svg viewBox="0 0 24 24" aria-hidden="true">
+  <path
+    d="M12 3.1 L14.5 9.2 L21.1 9.7 L16.2 13.9 L17.8 20.4 L12 16.9 L6.2 20.4 L7.8 13.9 L2.9 9.7 L9.5 9.2 Z"
+  />
 </svg>`
 
 function textureUrl(file) {
@@ -48,6 +56,16 @@ function buildEntries() {
     }
   }
 
+  for (const star of NOTABLE_STARS) {
+    entries.push({
+      id: star.id,
+      name: star.name,
+      fullName: star.fullName,
+      kind: `Gwiazda · ${star.constellation}`,
+      starColor: star.color,
+    })
+  }
+
   return entries
 }
 
@@ -64,6 +82,10 @@ function createItem(entry, index, onSelect) {
   if (entry.icon) {
     thumb.classList.add('object-thumb--icon')
     thumb.innerHTML = entry.icon
+  } else if (entry.starColor) {
+    thumb.classList.add('object-thumb--star')
+    thumb.style.setProperty('--star-color', entry.starColor)
+    thumb.innerHTML = STAR_ICON
   } else {
     thumb.style.setProperty('--tex', `url("${textureUrl(entry.texture)}")`)
     // Stagger the rotation so the thumbnails do not all spin in lockstep.

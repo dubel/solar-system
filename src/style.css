@@ -497,6 +497,25 @@ canvas {
   stroke: none;
 }
 
+.object-thumb--star {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 42%, var(--star-color), #05070d 72%);
+  animation: none;
+}
+
+.object-thumb--star::after {
+  display: none;
+}
+
+.object-thumb--star svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--star-color);
+  stroke: none;
+  filter: drop-shadow(0 0 5px var(--star-color));
+}
+
 @keyframes satellite-float {
   0%,
   100% {

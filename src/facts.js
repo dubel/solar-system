@@ -1,4 +1,5 @@
 import { ISS, PLANETS, SUN } from './data/celestialBodies.js'
+import { NOTABLE_STARS } from './data/notableStars.js'
 
 const AU_KM = 149_597_870
 const EARTH_RADIUS_KM = 6371
@@ -74,6 +75,16 @@ function issStats(iss) {
   ]
 }
 
+function starStats(star) {
+  const distDigits = star.distLy < 20 ? 1 : 0
+  return [
+    { label: 'Jasność', value: `${nf(star.mag, 2)} mag` },
+    { label: 'Odległość', value: `${nf(star.distLy, distDigits)} l.ś.` },
+    { label: 'Gwiazdozbiór', value: star.constellation },
+    { label: 'Typ widmowy', value: star.spect },
+  ]
+}
+
 function buildRegistry() {
   const registry = new Map()
   registry.set(SUN.id, { name: SUN.name, kind: 'Gwiazda', stats: sunStats(SUN), fact: SUN.info.fact })
@@ -103,6 +114,15 @@ function buildRegistry() {
         fact: ISS.info.fact,
       })
     }
+  }
+
+  for (const star of NOTABLE_STARS) {
+    registry.set(star.id, {
+      name: star.name,
+      kind: `Gwiazda · ${star.constellation}`,
+      stats: starStats(star),
+      fact: star.fact,
+    })
   }
 
   return registry

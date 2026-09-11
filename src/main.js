@@ -6,7 +6,7 @@ import { bindExplorer } from './explorer.js'
 import { bindFacts } from './facts.js'
 import { FlyCamera } from './flyCamera.js'
 import { bindHud } from './hud.js'
-import { createSky, loadStarCatalog, resizeSky, setConstellationLinesVisible } from './sky.js'
+import { createSky, createNotableStarMarkers, loadStarCatalog, resizeSky, setConstellationLinesVisible } from './sky.js'
 import { createSolarSystem, updateSolarSystem } from './solarSystem.js'
 import './style.css'
 
@@ -302,7 +302,10 @@ async function start() {
   if (skyRoot.getObjectByName('constellations')) {
     syncConstellationToggle(false)
   }
+  const notableStars = createNotableStarMarkers()
+  scene.add(notableStars.group)
   system = createSolarSystem(scene, textures, { iss: issModel })
+  system.pickables.push(...notableStars.pickables)
   meshById = new Map(system.pickables.map((mesh) => [mesh.userData.id, mesh]))
   explorer.setAvailable('iss', meshById.has('iss'))
   updateSolarSystem(system.bodies, simTimeDays)
