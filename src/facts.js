@@ -57,10 +57,10 @@ function sunStats(sun) {
   ]
 }
 
-function moonStats(moon) {
+function moonStats(moon, planet) {
   return [
     radiusRow(moon.radiusKm),
-    { label: 'Odległość od Ziemi', value: `${nf(moon.info.distanceKm)} km` },
+    { label: `Odległość od ${planet.nameGenitive ?? planet.name}`, value: `${nf(moon.info.distanceKm)} km` },
     orbitalRow(moon.orbitalPeriodDays),
     { label: 'Grawitacja', value: `${nf(moon.info.gravity, 2)} m/s²` },
     { label: 'Śr. temperatura', value: tempStr(moon.info.tempC) },
@@ -102,7 +102,7 @@ function buildRegistry() {
       registry.set(moon.id, {
         name: moon.name,
         kind: `Księżyc · ${planet.name}`,
-        stats: moonStats(moon),
+        stats: moonStats(moon, planet),
         fact: moon.info.fact,
       })
     }

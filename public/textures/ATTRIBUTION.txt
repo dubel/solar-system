@@ -2,3 +2,7 @@ Solar System Scope 2K textures (CC BY 4.0)
 Source: https://www.solarsystemscope.com/textures/
 Based on NASA elevation and imagery data.
 Downloaded via Wikimedia Commons mirrors.
+
+Galilean moon maps (Io, Europa, Ganymede, Callisto): NASA 3D Resources
+USGS / JPL / Caltech Voyager–Galileo mosaics, free to use.
+https://science.nasa.gov/3d-resources/

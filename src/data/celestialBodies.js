@@ -48,6 +48,100 @@ export const MOON = {
   },
 }
 
+// Wizualne orbity: proporcje Galileuszowe, Io tuż poza tarczą Jowisza.
+// Średnie długości J2000: Meeus, Astronomical Algorithms, rozdz. 44.
+export const IO = {
+  id: 'io',
+  name: 'Io',
+  radiusKm: 1821.6,
+  orbitalPeriodDays: 1.769138,
+  rotationPeriodDays: 1.769138,
+  tidalLock: true,
+  obliquityDeg: 0.04,
+  inclinationDeg: 0.05,
+  meanLongitudeDeg: 106.077,
+  texture: 'io.jpg',
+  color: 0xd4a84a,
+  visualRadius: 0.33,
+  visualOrbitRadius: 6.4,
+  focusDistance: 3.5,
+  info: {
+    gravity: 1.8,
+    tempC: -163,
+    distanceKm: 421800,
+    fact: 'Najbardziej wulkanicznie aktywne ciało w Układzie Słonecznym — siarkowe pióropusze sięgają setek kilometrów.',
+  },
+}
+
+export const EUROPA = {
+  id: 'europa',
+  name: 'Europa',
+  radiusKm: 1560.8,
+  orbitalPeriodDays: 3.551181,
+  rotationPeriodDays: 3.551181,
+  tidalLock: true,
+  obliquityDeg: 0.1,
+  inclinationDeg: 0.47,
+  meanLongitudeDeg: 175.732,
+  texture: 'europa.jpg',
+  color: 0xcfc6b4,
+  visualRadius: 0.28,
+  visualOrbitRadius: 10.2,
+  focusDistance: 3.3,
+  info: {
+    gravity: 1.31,
+    tempC: -171,
+    distanceKm: 671100,
+    fact: 'Pod lodową skorupą kryje się globalny ocean — jeden z głównych kandydatów na życie poza Ziemią.',
+  },
+}
+
+export const GANYMEDE = {
+  id: 'ganymede',
+  name: 'Ganimedes',
+  radiusKm: 2634.1,
+  orbitalPeriodDays: 7.154553,
+  rotationPeriodDays: 7.154553,
+  tidalLock: true,
+  obliquityDeg: 0.16,
+  inclinationDeg: 0.2,
+  meanLongitudeDeg: 120.559,
+  texture: 'ganymede.jpg',
+  color: 0x8b8680,
+  visualRadius: 0.48,
+  visualOrbitRadius: 16.2,
+  focusDistance: 4.2,
+  info: {
+    gravity: 1.43,
+    tempC: -163,
+    distanceKm: 1070400,
+    fact: 'Największy księżyc Układu Słonecznego, większy od Merkurego, z własnym polem magnetycznym.',
+  },
+}
+
+export const CALLISTO = {
+  id: 'callisto',
+  name: 'Kallisto',
+  radiusKm: 2410.3,
+  orbitalPeriodDays: 16.689018,
+  rotationPeriodDays: 16.689018,
+  tidalLock: true,
+  obliquityDeg: 0.19,
+  inclinationDeg: 0.19,
+  meanLongitudeDeg: 84.445,
+  texture: 'callisto.jpg',
+  color: 0x6a6158,
+  visualRadius: 0.44,
+  visualOrbitRadius: 28.6,
+  focusDistance: 4,
+  info: {
+    gravity: 1.24,
+    tempC: -139,
+    distanceKm: 1882700,
+    fact: 'Najstarsza, najbardziej pokraterowana powierzchnia spośród księżyców Galileuszowych.',
+  },
+}
+
 export const ISS = {
   id: 'iss',
   name: 'ISS',
@@ -110,6 +204,7 @@ export const PLANETS = [
   {
     id: 'earth',
     name: 'Ziemia',
+    nameGenitive: 'Ziemi',
     radiusKm: 6371,
     au: 1,
     orbitalPeriodDays: 365.256,
@@ -151,6 +246,7 @@ export const PLANETS = [
   {
     id: 'jupiter',
     name: 'Jowisz',
+    nameGenitive: 'Jowisza',
     radiusKm: 69911,
     au: 5.2044,
     orbitalPeriodDays: 4332.589,
@@ -160,12 +256,14 @@ export const PLANETS = [
     meanLongitudeDeg: 34.351,
     texture: 'jupiter.jpg',
     color: 0xd4a373,
+    focusDistance: 52,
     info: {
       gravity: 24.79,
       tempC: -110,
       moons: 95,
       fact: 'Wielka Czerwona Plama to burza większa od Ziemi, trwająca od stuleci.',
     },
+    moons: [IO, EUROPA, GANYMEDE, CALLISTO],
   },
   {
     id: 'saturn',

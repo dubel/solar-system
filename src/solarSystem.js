@@ -220,7 +220,7 @@ export function createSolarSystem(scene, textures, models = {}) {
     mesh.userData = {
       id: planet.id,
       name: planet.name,
-      focusDistance: radius * 5.5,
+      focusDistance: planet.focusDistance ?? radius * 5.5,
     }
     tilt.add(mesh)
     pickables.push(mesh)
@@ -272,14 +272,15 @@ export function createSolarSystem(scene, textures, models = {}) {
         const moonAnchor = new THREE.Group()
         const moonTilt = new THREE.Group()
         moonTilt.rotation.z = THREE.MathUtils.degToRad(moon.obliquityDeg)
+        const moonTexture = textures[moon.id] ?? textures.moon
         const moonMesh = new THREE.Mesh(
           new THREE.SphereGeometry(moon.visualRadius, 32, 24),
-          planetMaterial(textures.moon, moon.color),
+          planetMaterial(moonTexture, moon.color),
         )
         moonMesh.userData = {
           id: moon.id,
           name: moon.name,
-          focusDistance: 3.4,
+          focusDistance: moon.focusDistance ?? 3.4,
         }
         moonTilt.add(moonMesh)
         const moonLabel = makeLabel(moon.name)
@@ -292,6 +293,7 @@ export function createSolarSystem(scene, textures, models = {}) {
           data: moon,
           anchor: moonAnchor,
           spin: moonMesh,
+          label: moonLabel,
         })
       }
     }
@@ -372,6 +374,25 @@ export function updateSolarSystem(bodies, simTimeDays) {
         ),
       )
       sat.spin.rotation.y = (simTimeDays / sat.data.rotationPeriodDays) * Math.PI * 2
+    }
+  }
+}
+
+const planetWorld = new THREE.Vector3()
+
+// Przy wielu księżycach etykiety zlewają się z planetą w widoku całego układu.
+export function updateMoonLabels(bodies, camera) {
+  for (const body of bodies) {
+    if (body.kind !== 'planet' || body.moons.length <= 1) continue
+    body.anchor.getWorldPosition(planetWorld)
+    const dist = camera.position.distanceTo(planetWorld)
+    const outermost = body.moons.reduce(
+      (max, moon) => Math.max(max, moon.data.visualOrbitRadius),
+      0,
+    )
+    const visible = dist < outermost * 2.2 + 14
+    for (const moon of body.moons) {
+      if (moon.label) moon.label.visible = visible
     }
   }
 }

@@ -7,7 +7,7 @@ import { bindFacts } from './facts.js'
 import { FlyCamera } from './flyCamera.js'
 import { bindHud } from './hud.js'
 import { createSky, createNotableStarMarkers, loadStarCatalog, resizeSky, setConstellationLinesVisible, updateConstellationLabels } from './sky.js'
-import { createSolarSystem, updateSolarSystem } from './solarSystem.js'
+import { createSolarSystem, updateMoonLabels, updateSolarSystem } from './solarSystem.js'
 import './style.css'
 
 const TEXTURE_FILES = {
@@ -23,6 +23,10 @@ const TEXTURE_FILES = {
   uranus: 'uranus.jpg',
   neptune: 'neptune.jpg',
   moon: 'moon.jpg',
+  io: 'io.jpg',
+  europa: 'europa.jpg',
+  ganymede: 'ganymede.jpg',
+  callisto: 'callisto.jpg',
   saturnRings: 'saturn_rings.png',
   milkyway: 'milkyway.jpg',
 }
@@ -367,6 +371,7 @@ function animate() {
   }
   notableStars?.tick(clock.elapsedTime)
   updateConstellationLabels(skyRoot, camera)
+  updateMoonLabels(system.bodies, camera)
   facts.update(system.bodies)
   hud.setDate(simTimeDays)
   renderer.render(scene, camera)
