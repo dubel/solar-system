@@ -6,6 +6,26 @@ import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js
 const STAR_RADIUS = 860
 const LINE_RADIUS = 840
 const ECLIPTIC_OBLIQUITY = THREE.MathUtils.degToRad(23.439281)
+const STAR_KEEP_FRACTION = 0.7
+const STAR_BRIGHTNESS = 0.75
+
+function selectStarIndices(catalog) {
+  const target = Math.round(catalog.count * STAR_KEEP_FRACTION)
+  const required = new Set()
+  for (const [ia, ib] of catalog.lines ?? []) {
+    required.add(ia)
+    required.add(ib)
+  }
+  const kept = []
+  for (let i = 0; i < catalog.count; i += 1) {
+    if (required.has(i)) kept.push(i)
+  }
+  // Katalog jest posortowany od najjaśniejszych — dobieramy resztę od góry.
+  for (let i = 0; i < catalog.count && kept.length < target; i += 1) {
+    if (!required.has(i)) kept.push(i)
+  }
+  return kept
+}
 
 function bvToColor(bv) {
   const t = THREE.MathUtils.clamp(bv, -0.4, 2.0)
@@ -67,23 +87,25 @@ function createStarMaterial() {
 }
 
 function createStarPoints(catalog) {
-  const count = catalog.count
+  const kept = selectStarIndices(catalog)
+  const count = kept.length
   const positions = new Float32Array(count * 3)
   const colors = new Float32Array(count * 3)
   const sizes = new Float32Array(count)
   const color = new THREE.Color()
 
-  for (let i = 0; i < count; i += 1) {
-    positions[i * 3] = catalog.x[i] * STAR_RADIUS
-    positions[i * 3 + 1] = catalog.y[i] * STAR_RADIUS
-    positions[i * 3 + 2] = catalog.z[i] * STAR_RADIUS
+  for (let n = 0; n < count; n += 1) {
+    const i = kept[n]
+    positions[n * 3] = catalog.x[i] * STAR_RADIUS
+    positions[n * 3 + 1] = catalog.y[i] * STAR_RADIUS
+    positions[n * 3 + 2] = catalog.z[i] * STAR_RADIUS
     color.copy(bvToColor(catalog.bv[i]))
     // Słabsze gwiazdy gasną, żeby Droga Mleczna rysowała się zagęszczeniem, nie szumem.
-    const fade = THREE.MathUtils.clamp(1.28 - catalog.mag[i] * 0.1, 0.38, 1)
-    colors[i * 3] = color.r * fade
-    colors[i * 3 + 1] = color.g * fade
-    colors[i * 3 + 2] = color.b * fade
-    sizes[i] = magToSize(catalog.mag[i])
+    const fade = THREE.MathUtils.clamp(1.28 - catalog.mag[i] * 0.1, 0.38, 1) * STAR_BRIGHTNESS
+    colors[n * 3] = color.r * fade
+    colors[n * 3 + 1] = color.g * fade
+    colors[n * 3 + 2] = color.b * fade
+    sizes[n] = magToSize(catalog.mag[i])
   }
 
   const geometry = new THREE.BufferGeometry()
