@@ -12,6 +12,7 @@ const LABEL_RADIUS = 820
 const ECLIPTIC_OBLIQUITY = THREE.MathUtils.degToRad(23.439281)
 const STAR_KEEP_FRACTION = 0.7
 const STAR_BRIGHTNESS = 0.75
+const STAR_POINT_SIZE = 3.1
 const STAR_FOCUS_DISTANCE = 640
 
 export function equatorialToScene(raHours, decDeg, radius = 1) {
@@ -75,6 +76,9 @@ export function createNotableStarMarkers() {
     },
     tick(elapsed) {
       if (glow.visible) glow.material.uniforms.uTime.value = elapsed
+    },
+    setBrightness(factor) {
+      glow.material.uniforms.uIntensity.value = Math.max(0, factor)
     },
   }
 }
@@ -187,7 +191,8 @@ function magToSize(mag) {
 function createStarMaterial() {
   return new THREE.ShaderMaterial({
     uniforms: {
-      uSize: { value: 3.1 },
+      uSize: { value: STAR_POINT_SIZE },
+      uBrightness: { value: 1 },
     },
     vertexShader: `
       attribute float aSize;
@@ -203,12 +208,14 @@ function createStarMaterial() {
     `,
     fragmentShader: `
       varying vec3 vColor;
+      uniform float uBrightness;
       void main() {
+        if (uBrightness < 0.002) discard;
         vec2 p = gl_PointCoord * 2.0 - 1.0;
         float d = dot(p, p);
         if (d > 1.0) discard;
         float a = exp(-d * 2.6);
-        gl_FragColor = vec4(vColor, a);
+        gl_FragColor = vec4(vColor * uBrightness, a);
         #include <colorspace_fragment>
       }
     `,
@@ -306,6 +313,8 @@ function createFallbackSky(texture) {
     color: texture ? 0xffffff : 0x070b16,
     side: THREE.BackSide,
     depthWrite: false,
+    transparent: true,
+    opacity: 1,
   })
   const sky = new THREE.Mesh(new THREE.SphereGeometry(900, 64, 32), material)
   sky.name = 'milkyway'
@@ -316,6 +325,9 @@ function createFallbackSky(texture) {
 export function createSky(texture, catalog) {
   const root = new THREE.Group()
   root.name = 'sky'
+  root.userData.baseWashOpacity = 1
+  root.userData.baseLineOpacity = 0.4
+  root.userData.baseLabelOpacity = 0.86
 
   if (!catalog?.count) {
     root.add(createFallbackSky(texture))
@@ -336,10 +348,12 @@ export function createSky(texture, catalog) {
         toneMapped: false,
       }),
     )
+    wash.name = 'milkyway'
     wash.rotation.y = Math.PI
     // Lekki obrót o nachylenie ekliptyki, żeby pas MW nie kłócił się ostro z orbitami.
     wash.rotation.x = ECLIPTIC_OBLIQUITY * 0.35
     root.add(wash)
+    root.userData.baseWashOpacity = 0.18
   }
 
   root.add(createStarPoints(catalog))
@@ -348,6 +362,41 @@ export function createSky(texture, catalog) {
   root.add(createConstellationLabels())
   root.userData.lineMaterial = lines.material
   return root
+}
+
+export function setSkyBrightness(sky, factor) {
+  if (!sky) return
+  const gain = Math.max(0, factor)
+  const stars = sky.getObjectByName('catalog-stars')
+  if (stars) {
+    if (stars.material?.uniforms?.uBrightness) {
+      stars.material.uniforms.uBrightness.value = gain
+    }
+    // Po ~0.85 RGB gwiazd zaczyna się nasycać — dalej rosną rozmiarem, nie mgłą tła.
+    if (stars.material?.uniforms?.uSize) {
+      const extra = Math.max(0, gain - 0.85) / (2.2 - 0.85)
+      stars.material.uniforms.uSize.value = STAR_POINT_SIZE * (1 + 0.55 * extra)
+    }
+    stars.visible = gain > 0.002
+  }
+  const wash = sky.getObjectByName('milkyway')
+  if (wash?.material) {
+    // Poświata MW nie idzie powyżej oryginału — inaczej przy 100% zagłusza gwiazdy.
+    const opacity = (sky.userData.baseWashOpacity ?? 0.18) * Math.min(gain, 1)
+    wash.material.opacity = opacity
+    wash.visible = opacity > 0.002
+  }
+  const lines = sky.getObjectByName('constellations')
+  if (lines?.material) {
+    lines.material.opacity = (sky.userData.baseLineOpacity ?? 0.4) * Math.min(gain, 1)
+  }
+  const labels = sky.getObjectByName('constellation-labels')
+  if (labels) {
+    const labelOpacity = (sky.userData.baseLabelOpacity ?? 0.86) * Math.min(gain, 1)
+    for (const label of labels.children) {
+      label.element.style.opacity = String(labelOpacity)
+    }
+  }
 }
 
 export function resizeSky(sky, width, height) {

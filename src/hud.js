@@ -44,7 +44,16 @@ function indexFromScale(days) {
   return best
 }
 
-export function bindHud({ onJumpToDate, onTimeScaleChange } = {}) {
+const STAR_GAIN_AT_MID = 0.85
+const STAR_GAIN_AT_MAX = 2.2
+
+function starGainFromSlider(percent) {
+  const t = Math.min(100, Math.max(0, Number(percent) || 0))
+  if (t <= 50) return STAR_GAIN_AT_MID * (t / 50)
+  return STAR_GAIN_AT_MID + (STAR_GAIN_AT_MAX - STAR_GAIN_AT_MID) * ((t - 50) / 50)
+}
+
+export function bindHud({ onJumpToDate, onTimeScaleChange, onStarBrightnessChange } = {}) {
   const panel = document.querySelector('#hud-panel')
   const timeScale = document.querySelector('#time-scale')
   const timeValue = document.querySelector('#time-value')
@@ -54,6 +63,8 @@ export function bindHud({ onJumpToDate, onTimeScaleChange } = {}) {
   const dateInput = document.querySelector('#sim-date-input')
   const dateOverlay = document.querySelector('.date-overlay')
   const focusValue = document.querySelector('#focus-name')
+  const starBrightness = document.querySelector('#star-brightness')
+  const starBrightnessValue = document.querySelector('#star-brightness-value')
   let pickerOpen = false
   let lastRunningIndex = DEFAULT_INDEX
 
@@ -112,9 +123,19 @@ export function bindHud({ onJumpToDate, onTimeScaleChange } = {}) {
     }
   }
 
+  const syncStarBrightness = () => {
+    const percent = Number(starBrightness?.value ?? 50)
+    if (starBrightnessValue) starBrightnessValue.textContent = `${Math.round(percent)}%`
+    onStarBrightnessChange?.(starGainFromSlider(percent))
+  }
+
   timeScale.addEventListener('input', syncScaleLabel)
   timeToggle.addEventListener('click', togglePlay)
   syncScaleLabel()
+  starBrightness?.addEventListener('input', syncStarBrightness)
+  if (starBrightnessValue) {
+    starBrightnessValue.textContent = `${Math.round(Number(starBrightness?.value ?? 50))}%`
+  }
 
   dateInput.addEventListener('focus', () => {
     pickerOpen = true

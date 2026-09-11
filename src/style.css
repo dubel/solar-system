@@ -120,6 +120,14 @@ canvas {
   font-size: 0.86rem;
 }
 
+.hud-slider {
+  margin: 4px 0 10px;
+}
+
+.hud-slider input[type='range'] {
+  margin: 4px 0 6px;
+}
+
 .time-control-row {
   display: flex;
   align-items: center;

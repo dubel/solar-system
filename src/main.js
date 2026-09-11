@@ -7,7 +7,7 @@ import { bindFacts } from './facts.js'
 import { FlyCamera } from './flyCamera.js'
 import { bindHud, clampIsoDate, isoToSimDays, simDaysToIso } from './hud.js'
 import { parseShareLink, writeShareLink } from './shareLink.js'
-import { createSky, createNotableStarMarkers, loadStarCatalog, resizeSky, setConstellationLinesVisible, updateConstellationLabels } from './sky.js'
+import { createSky, createNotableStarMarkers, loadStarCatalog, resizeSky, setConstellationLinesVisible, setSkyBrightness, updateConstellationLabels } from './sky.js'
 import { createSolarSystem, updateMoonLabels, updateSolarSystem } from './solarSystem.js'
 import './style.css'
 
@@ -54,6 +54,10 @@ const hud = bindHud({
   },
   onTimeScaleChange(daysPerSecond) {
     if (daysPerSecond === 0) syncShareLink()
+  },
+  onStarBrightnessChange(factor) {
+    skyBrightness = factor
+    applySkyBrightness()
   },
 })
 
@@ -119,6 +123,12 @@ let focus = null
 let skyRoot = null
 let notableStars = null
 let lockFollow = false
+let skyBrightness = 0.85
+
+function applySkyBrightness() {
+  setSkyBrightness(skyRoot, skyBrightness)
+  notableStars?.setBrightness(skyBrightness)
+}
 
 // Toggle widoków kamery: start (domyślny) ↔ rzut z góry. Na starcie jesteśmy już
 // w widoku domyślnym, więc pierwsze kliknięcie idzie od razu na rzut z góry.
@@ -414,6 +424,7 @@ async function start() {
   }
   notableStars = createNotableStarMarkers()
   scene.add(notableStars.group)
+  applySkyBrightness()
   system = createSolarSystem(scene, textures, { iss: issModel })
   system.pickables.push(...notableStars.pickables)
   meshById = new Map(system.pickables.map((mesh) => [mesh.userData.id, mesh]))
