@@ -41,6 +41,14 @@ canvas {
   user-select: none;
 }
 
+.label--constellation {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #c5d0e4;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.92);
+  opacity: 0.86;
+}
+
 .hud {
   position: absolute;
   z-index: 2;
@@ -722,6 +730,10 @@ canvas {
 
   .label {
     font-size: 14px;
+  }
+
+  .label--constellation {
+    font-size: 11px;
   }
 
   /* Na wąskich ekranach panel faktów staje się arkuszem u dołu, nad ikoną lupy. */

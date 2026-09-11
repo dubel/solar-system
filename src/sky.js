@@ -2,10 +2,13 @@ import * as THREE from 'three'
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js'
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js'
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js'
+import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js'
+import { CONSTELLATIONS } from './data/constellations.js'
 import { NOTABLE_STARS } from './data/notableStars.js'
 
 const STAR_RADIUS = 860
 const LINE_RADIUS = 840
+const LABEL_RADIUS = 820
 const ECLIPTIC_OBLIQUITY = THREE.MathUtils.degToRad(23.439281)
 const STAR_KEEP_FRACTION = 0.7
 const STAR_BRIGHTNESS = 0.75
@@ -280,6 +283,23 @@ function createConstellationLines(catalog) {
   return lines
 }
 
+function createConstellationLabels() {
+  const group = new THREE.Group()
+  group.name = 'constellation-labels'
+  group.visible = false
+  for (const constellation of CONSTELLATIONS) {
+    const el = document.createElement('div')
+    el.className = 'label label--constellation'
+    el.textContent = constellation.name
+    const label = new CSS2DObject(el)
+    label.position.copy(
+      equatorialToScene(constellation.raHours, constellation.decDeg, LABEL_RADIUS),
+    )
+    group.add(label)
+  }
+  return group
+}
+
 function createFallbackSky(texture) {
   const material = new THREE.MeshBasicMaterial({
     map: texture ?? null,
@@ -325,6 +345,7 @@ export function createSky(texture, catalog) {
   root.add(createStarPoints(catalog))
   const lines = createConstellationLines(catalog)
   root.add(lines)
+  root.add(createConstellationLabels())
   root.userData.lineMaterial = lines.material
   return root
 }
@@ -335,9 +356,31 @@ export function resizeSky(sky, width, height) {
 
 export function setConstellationLinesVisible(sky, visible) {
   const lines = sky?.getObjectByName('constellations')
+  const labels = sky?.getObjectByName('constellation-labels')
   if (!lines) return false
   lines.visible = visible
+  if (labels) {
+    labels.visible = visible
+    if (!visible) {
+      for (const label of labels.children) {
+        label.element.style.display = 'none'
+      }
+    }
+  }
   return visible
+}
+
+const _labelCamDir = new THREE.Vector3()
+const _labelOffset = new THREE.Vector3()
+
+export function updateConstellationLabels(sky, camera) {
+  const labels = sky?.getObjectByName('constellation-labels')
+  if (!labels?.visible) return
+  camera.getWorldDirection(_labelCamDir)
+  for (const label of labels.children) {
+    _labelOffset.copy(label.position).sub(camera.position)
+    label.element.style.display = _labelOffset.dot(_labelCamDir) > 0 ? '' : 'none'
+  }
 }
 
 export function loadStarCatalog() {

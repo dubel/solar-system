@@ -6,7 +6,7 @@ import { bindExplorer } from './explorer.js'
 import { bindFacts } from './facts.js'
 import { FlyCamera } from './flyCamera.js'
 import { bindHud } from './hud.js'
-import { createSky, createNotableStarMarkers, loadStarCatalog, resizeSky, setConstellationLinesVisible } from './sky.js'
+import { createSky, createNotableStarMarkers, loadStarCatalog, resizeSky, setConstellationLinesVisible, updateConstellationLabels } from './sky.js'
 import { createSolarSystem, updateSolarSystem } from './solarSystem.js'
 import './style.css'
 
@@ -366,6 +366,7 @@ function animate() {
     fly.update(delta)
   }
   notableStars?.tick(clock.elapsedTime)
+  updateConstellationLabels(skyRoot, camera)
   hud.setDate(simTimeDays)
   renderer.render(scene, camera)
   labelRenderer.render(scene, camera)
