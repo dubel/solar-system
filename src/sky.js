@@ -45,12 +45,98 @@ export function createNotableStarMarkers() {
       name: star.name,
       kind: 'star',
       focusDistance: STAR_FOCUS_DISTANCE,
+      color: star.color,
+      mag: star.mag,
     }
     group.add(mesh)
     pickables.push(mesh)
   }
 
-  return { group, pickables }
+  const glow = createStarGlow()
+  group.add(glow)
+
+  return {
+    group,
+    pickables,
+    highlight(mesh) {
+      if (!mesh) {
+        glow.visible = false
+        return
+      }
+      glow.position.copy(mesh.position)
+      const mag = mesh.userData.mag ?? 1
+      const size = THREE.MathUtils.clamp(62 + (1.2 - mag) * 8, 52, 88)
+      glow.scale.setScalar(size)
+      glow.material.uniforms.uColor.value.set(mesh.userData.color ?? '#fff4d8')
+      glow.visible = true
+    },
+    tick(elapsed) {
+      if (glow.visible) glow.material.uniforms.uTime.value = elapsed
+    },
+  }
+}
+
+function createStarGlow() {
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uColor: { value: new THREE.Color('#fff4d8') },
+      uTime: { value: 0 },
+      uIntensity: { value: 1 },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec2 vUv;
+      uniform vec3 uColor;
+      uniform float uTime;
+      uniform float uIntensity;
+      void main() {
+        vec2 p = vUv * 2.0 - 1.0;
+        float r = length(p);
+        float ang = 0.3;
+        float ca = cos(ang);
+        float sa = sin(ang);
+        vec2 q = vec2(ca * p.x - sa * p.y, sa * p.x + ca * p.y);
+
+        float core = exp(-r * r * 28.0);
+        float halo = exp(-r * r * 6.5) * 0.48;
+        float bloom = exp(-r * r * 2.4) * 0.14;
+
+        float ax = abs(q.x);
+        float ay = abs(q.y);
+        float spikeH = exp(-ay * 42.0) * exp(-ax * ax * 3.4) * smoothstep(0.82, 0.08, ax);
+        float spikeV = exp(-ax * 42.0) * exp(-ay * ay * 3.4) * smoothstep(0.82, 0.08, ay);
+        float spikes = max(spikeH, spikeV);
+
+        float pulse = 0.9 + 0.1 * sin(uTime * 1.4);
+        float edge = 1.0 - smoothstep(0.62, 0.92, r);
+        float a = (core * 1.25 + halo + bloom + spikes * 0.9) * pulse * uIntensity * edge;
+        if (a < 0.02) discard;
+        gl_FragColor = vec4(uColor * (0.5 + 0.5 * core), a);
+        #include <colorspace_fragment>
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+    side: THREE.DoubleSide,
+  })
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material)
+  glow.name = 'star-highlight'
+  glow.visible = false
+  glow.frustumCulled = false
+  glow.renderOrder = 2
+  glow.onBeforeRender = (_renderer, _scene, camera) => {
+    glow.quaternion.copy(camera.quaternion)
+  }
+  return glow
 }
 
 function selectStarIndices(catalog) {

@@ -88,6 +88,7 @@ const lookTarget = new THREE.Vector3()
 let system = { bodies: [], pickables: [] }
 let focus = null
 let skyRoot = null
+let notableStars = null
 
 // Toggle widoków kamery: start (domyślny) ↔ rzut z góry. Na starcie jesteśmy już
 // w widoku domyślnym, więc pierwsze kliknięcie idzie od razu na rzut z góry.
@@ -117,6 +118,7 @@ function setFocus(mesh) {
 
   if (mesh.userData.kind === 'star') {
     focus = null
+    notableStars?.highlight(mesh)
     view = {
       fromPosition: camera.position.clone(),
       toPosition: camera.position.clone(),
@@ -130,6 +132,7 @@ function setFocus(mesh) {
   }
 
   fly.setLookPoint(null)
+  notableStars?.highlight(null)
   focusOffset.copy(camera.position).sub(lookTarget)
   if (focusOffset.length() < 0.001) {
     focusOffset.set(0, mesh.userData.focusDistance * 0.35, mesh.userData.focusDistance)
@@ -179,6 +182,7 @@ function startView(state) {
   const fromLook = currentLookPoint().clone()
   clearFocus()
   fly.setLookPoint(null)
+  notableStars?.highlight(null)
   hud.setFocus(null)
   view = {
     fromPosition: camera.position.clone(),
@@ -317,6 +321,7 @@ function animate() {
   } else {
     fly.update(delta)
   }
+  notableStars?.tick(clock.elapsedTime)
   hud.setDate(simTimeDays)
   renderer.render(scene, camera)
   labelRenderer.render(scene, camera)
@@ -334,7 +339,7 @@ async function start() {
   if (skyRoot.getObjectByName('constellations')) {
     syncConstellationToggle(false)
   }
-  const notableStars = createNotableStarMarkers()
+  notableStars = createNotableStarMarkers()
   scene.add(notableStars.group)
   system = createSolarSystem(scene, textures, { iss: issModel })
   system.pickables.push(...notableStars.pickables)
