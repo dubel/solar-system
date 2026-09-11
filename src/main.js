@@ -50,14 +50,21 @@ const explorer = bindExplorer({
     if (isCompactLayout()) explorer.close()
   },
 })
-const facts = bindFacts({ onClose: clearFocus })
+const facts = bindFacts({
+  onClose() {
+    if (lockFollow && focus) return
+    clearFocus()
+  },
+})
 const constellationToggle = document.querySelector('#constellation-toggle')
+const lockToggle = document.querySelector('#lock-toggle')
 document.querySelector('#view-toggle').addEventListener('click', cycleCameraView)
 constellationToggle.addEventListener('click', () => {
   const lines = skyRoot?.getObjectByName('constellations')
   if (!lines) return
   syncConstellationToggle(setConstellationLinesVisible(skyRoot, !lines.visible))
 })
+lockToggle.addEventListener('click', () => setLockFollow(!lockFollow))
 
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 4000)
@@ -89,6 +96,7 @@ let system = { bodies: [], pickables: [] }
 let focus = null
 let skyRoot = null
 let notableStars = null
+let lockFollow = false
 
 // Toggle widoków kamery: start (domyślny) ↔ rzut z góry. Na starcie jesteśmy już
 // w widoku domyślnym, więc pierwsze kliknięcie idzie od razu na rzut z góry.
@@ -163,15 +171,27 @@ function finishStarAim(starPos) {
 
 function updateFocus(delta) {
   if (!focus) return
-  if (fly.isMoving()) {
+  if (!lockFollow && fly.isMoving()) {
     clearFocus()
     return
   }
 
   focus.elapsed += delta
   const t = Math.min(1, focus.elapsed / focus.duration)
-  const eased = 1 - (1 - t) ** 3
   focus.mesh.getWorldPosition(lookTarget)
+
+  if (lockFollow && (t >= 1 || fly.isMoving())) {
+    if (t < 1) {
+      focus.elapsed = focus.duration
+      fly.target.copy(lookTarget)
+      fly.syncFromCamera()
+    } else {
+      fly.track(lookTarget)
+    }
+    return
+  }
+
+  const eased = 1 - (1 - t) ** 3
   const destination = lookTarget.clone().add(focusOffset)
   camera.position.lerpVectors(focus.from, destination, eased)
   fly.follow(lookTarget)
@@ -180,6 +200,7 @@ function updateFocus(delta) {
 function startView(state) {
   if (!state) return
   const fromLook = currentLookPoint().clone()
+  setLockFollow(false)
   clearFocus()
   fly.setLookPoint(null)
   notableStars?.highlight(null)
@@ -274,6 +295,29 @@ function viewportSize() {
 function cycleCameraView() {
   showingOverview = !showingOverview
   startView(showingOverview ? overviewView : defaultView)
+}
+
+function syncLockToggle() {
+  lockToggle.setAttribute('aria-pressed', String(lockFollow))
+  const label = lockFollow ? 'Wyłącz śledzenie obiektu' : 'Śledź wybrany obiekt'
+  lockToggle.setAttribute('aria-label', label)
+  lockToggle.title = label
+}
+
+function setLockFollow(on) {
+  lockFollow = on
+  syncLockToggle()
+  if (on && focus?.mesh) {
+    focus.elapsed = focus.duration
+    focus.mesh.getWorldPosition(lookTarget)
+    fly.target.copy(lookTarget)
+    fly.syncFromCamera()
+    return
+  }
+  if (!on && focus) {
+    fly.syncFromCamera()
+    focus = null
+  }
 }
 
 function syncConstellationToggle(visible) {

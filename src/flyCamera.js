@@ -92,6 +92,12 @@ export class FlyCamera {
     this.euler.setFromQuaternion(this.camera.quaternion)
   }
 
+  track(point) {
+    this.lookPoint = null
+    this.target.copy(point)
+    this.#apply()
+  }
+
   #apply() {
     this.offset.setFromSpherical(this.spherical)
     this.camera.position.copy(this.target).add(this.offset)
