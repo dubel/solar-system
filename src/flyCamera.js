@@ -43,6 +43,8 @@ export class FlyCamera {
     this.prevPinchDist = 0
     this.prevMid = null
     this.prevSingle = null
+    // Osobny punkt spojrzenia: orbita wokół `target`, ale lookAt może iść w gwiazdę.
+    this.lookPoint = null
 
     this.syncFromCamera()
     this.#bind()
@@ -61,11 +63,22 @@ export class FlyCamera {
   }
 
   setTarget(point) {
+    this.lookPoint = null
     this.target.copy(point)
     this.syncFromCamera()
   }
 
+  setLookPoint(point) {
+    if (point) {
+      if (!this.lookPoint) this.lookPoint = new THREE.Vector3()
+      this.lookPoint.copy(point)
+    } else {
+      this.lookPoint = null
+    }
+  }
+
   follow(point) {
+    this.lookPoint = null
     this.target.copy(point)
     this.offset.copy(this.camera.position).sub(this.target)
     if (this.offset.lengthSq() < 0.0001) {
@@ -82,7 +95,7 @@ export class FlyCamera {
   #apply() {
     this.offset.setFromSpherical(this.spherical)
     this.camera.position.copy(this.target).add(this.offset)
-    this.camera.lookAt(this.target)
+    this.camera.lookAt(this.lookPoint ?? this.target)
     this.euler.setFromQuaternion(this.camera.quaternion)
   }
 

@@ -102,6 +102,115 @@ const overviewView = {
   target: new THREE.Vector3(0, 0, 0),
 }
 const viewTargetTmp = new THREE.Vector3()
+const origin = new THREE.Vector3()
+
+function currentLookPoint() {
+  return fly.lookPoint ?? fly.target
+}
+
+function setFocus(mesh) {
+  view = null
+  mesh.getWorldPosition(lookTarget)
+  hud.setFocus(mesh.userData.name)
+  explorer.setActive(mesh.userData.id)
+  facts.show(mesh.userData.id)
+
+  if (mesh.userData.kind === 'star') {
+    focus = null
+    view = {
+      fromPosition: camera.position.clone(),
+      toPosition: camera.position.clone(),
+      fromTarget: currentLookPoint().clone(),
+      toTarget: lookTarget.clone(),
+      elapsed: 0,
+      duration: 1.05,
+      mode: 'star-aim',
+    }
+    return
+  }
+
+  fly.setLookPoint(null)
+  focusOffset.copy(camera.position).sub(lookTarget)
+  if (focusOffset.length() < 0.001) {
+    focusOffset.set(0, mesh.userData.focusDistance * 0.35, mesh.userData.focusDistance)
+  }
+  focusOffset.setLength(mesh.userData.focusDistance)
+  focus = {
+    mesh,
+    from: camera.position.clone(),
+    elapsed: 0,
+    duration: 1.15,
+  }
+}
+
+function clearFocus() {
+  const wasPlanetFocus = focus !== null
+  focus = null
+  explorer.setActive(null)
+  facts.hide()
+  if (wasPlanetFocus) fly.syncFromCamera()
+  if (!fly.lookPoint) hud.setFocus(null)
+}
+
+function finishStarAim(starPos) {
+  fly.target.copy(origin)
+  fly.setLookPoint(starPos)
+  fly.syncFromCamera()
+}
+
+function updateFocus(delta) {
+  if (!focus) return
+  if (fly.isMoving()) {
+    clearFocus()
+    return
+  }
+
+  focus.elapsed += delta
+  const t = Math.min(1, focus.elapsed / focus.duration)
+  const eased = 1 - (1 - t) ** 3
+  focus.mesh.getWorldPosition(lookTarget)
+  const destination = lookTarget.clone().add(focusOffset)
+  camera.position.lerpVectors(focus.from, destination, eased)
+  fly.follow(lookTarget)
+}
+
+function startView(state) {
+  if (!state) return
+  const fromLook = currentLookPoint().clone()
+  clearFocus()
+  fly.setLookPoint(null)
+  hud.setFocus(null)
+  view = {
+    fromPosition: camera.position.clone(),
+    toPosition: state.position.clone(),
+    fromTarget: fromLook,
+    toTarget: state.target.clone(),
+    elapsed: 0,
+    duration: 1.1,
+  }
+}
+
+function updateView(delta) {
+  if (!view) return
+  // Chwyt myszą/klawiaturą przerywa animację i oddaje sterowanie użytkownikowi.
+  if (fly.isMoving()) {
+    if (view.mode === 'star-aim') finishStarAim(view.toTarget)
+    else fly.syncFromCamera()
+    view = null
+    return
+  }
+  view.elapsed += delta
+  const t = Math.min(1, view.elapsed / view.duration)
+  const eased = 1 - (1 - t) ** 3
+  camera.position.lerpVectors(view.fromPosition, view.toPosition, eased)
+  viewTargetTmp.lerpVectors(view.fromTarget, view.toTarget, eased)
+  camera.lookAt(viewTargetTmp)
+  if (t >= 1) {
+    if (view.mode === 'star-aim') finishStarAim(view.toTarget)
+    else fly.setTarget(view.toTarget)
+    view = null
+  }
+}
 
 function loadTextures() {
   const loader = new THREE.TextureLoader()
@@ -155,83 +264,6 @@ function viewportSize() {
     height: Math.round(viewport?.height ?? window.innerHeight),
     offsetLeft: viewport?.offsetLeft ?? 0,
     offsetTop: viewport?.offsetTop ?? 0,
-  }
-}
-
-function setFocus(mesh) {
-  view = null
-  mesh.getWorldPosition(lookTarget)
-  focusOffset.copy(camera.position).sub(lookTarget)
-  if (focusOffset.length() < 0.001) {
-    focusOffset.set(0, mesh.userData.focusDistance * 0.35, mesh.userData.focusDistance)
-  }
-  focusOffset.setLength(mesh.userData.focusDistance)
-  focus = {
-    mesh,
-    from: camera.position.clone(),
-    elapsed: 0,
-    duration: 1.15,
-  }
-  hud.setFocus(mesh.userData.name)
-  explorer.setActive(mesh.userData.id)
-  facts.show(mesh.userData.id)
-}
-
-function clearFocus() {
-  const wasFocused = focus !== null
-  focus = null
-  hud.setFocus(null)
-  explorer.setActive(null)
-  facts.hide()
-  if (wasFocused) fly.syncFromCamera()
-}
-
-function updateFocus(delta) {
-  if (!focus) return
-  if (fly.isMoving()) {
-    clearFocus()
-    return
-  }
-
-  focus.elapsed += delta
-  const t = Math.min(1, focus.elapsed / focus.duration)
-  const eased = 1 - (1 - t) ** 3
-  focus.mesh.getWorldPosition(lookTarget)
-  const destination = lookTarget.clone().add(focusOffset)
-  camera.position.lerpVectors(focus.from, destination, eased)
-  fly.follow(lookTarget)
-}
-
-function startView(state) {
-  if (!state) return
-  clearFocus()
-  view = {
-    fromPosition: camera.position.clone(),
-    toPosition: state.position.clone(),
-    fromTarget: fly.target.clone(),
-    toTarget: state.target.clone(),
-    elapsed: 0,
-    duration: 1.1,
-  }
-}
-
-function updateView(delta) {
-  if (!view) return
-  // Chwyt myszą/klawiaturą przerywa animację i oddaje sterowanie użytkownikowi.
-  if (fly.isMoving()) {
-    view = null
-    fly.syncFromCamera()
-    return
-  }
-  view.elapsed += delta
-  const t = Math.min(1, view.elapsed / view.duration)
-  const eased = 1 - (1 - t) ** 3
-  camera.position.lerpVectors(view.fromPosition, view.toPosition, eased)
-  viewTargetTmp.lerpVectors(view.fromTarget, view.toTarget, eased)
-  camera.lookAt(viewTargetTmp)
-  if (t >= 1) {
-    fly.setTarget(view.toTarget)
-    view = null
   }
 }
 
